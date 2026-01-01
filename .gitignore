@@ -1,0 +1,30 @@
+# Node.js (backend e frontend)
+node_modules/
+
+# Variabili ambiente
+.env
+
+# Log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build frontend
+build/
+dist/
+
+# React Native / Expo
+.expo/
+.expo-shared/
+ios/
+android/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+
+# Test
+coverage/
