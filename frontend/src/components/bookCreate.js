@@ -2,15 +2,34 @@ import { useState } from "react";
 
 const API_BASE = "/api/books";
 
-export default function BookCreate({ onCancel, onCreated }) {
+export default function BookCreate({ onCancel, onCreated, notify }) {
   const [titolo, setTitolo] = useState("");
   const [autore, setAutore] = useState("");
   const [stato, setStato] = useState("da leggere");
   const [utenteId, setUtenteId] = useState("1");
   const [saving, setSaving] = useState(false);
 
+  function validate() {
+    const t = titolo.trim();
+    const a = autore.trim();
+    const u = Number(utenteId);
+
+    if (t.length < 3) return "Titolo troppo corto (min 3 caratteri).";
+    if (a.length < 3) return "Autore troppo corto (min 3 caratteri).";
+    if (!Number.isFinite(u) || u <= 0) return "Utente ID non valido.";
+
+    return null;
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
+
+    const errMsg = validate();
+    if (errMsg) {
+      notify?.(errMsg, "error");
+      return;
+    }
+
     setSaving(true);
 
     try {
@@ -40,14 +59,13 @@ export default function BookCreate({ onCancel, onCreated }) {
 
       onCreated();
     } catch (e2) {
-      alert(e2.message || "Errore creazione");
+      notify?.(e2.message || "Errore creazione", "error");
     } finally {
       setSaving(false);
     }
   }
 
-  const canSubmit =
-    titolo.trim().length > 0 && autore.trim().length > 0 && Number(utenteId) > 0;
+  const canSubmit = !validate();
 
   return (
     <div className="panel">

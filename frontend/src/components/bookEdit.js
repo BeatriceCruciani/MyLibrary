@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 const API_BASE = "/api/books";
 
-export default function BookEdit({ id, onCancel, onSaved }) {
+export default function BookEdit({ id, onCancel, onSaved, notify }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -13,7 +13,6 @@ export default function BookEdit({ id, onCancel, onSaved }) {
 
   const [saving, setSaving] = useState(false);
 
-  // precompila
   useEffect(() => {
     let cancelled = false;
 
@@ -34,7 +33,10 @@ export default function BookEdit({ id, onCancel, onSaved }) {
           setUtenteId(String(data.utente_id ?? "1"));
         }
       } catch (e) {
-        if (!cancelled) setError(e.message || "Errore di rete");
+        if (!cancelled) {
+          setError(e.message || "Errore di rete");
+          notify?.(e.message || "Errore di rete", "error");
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -43,10 +45,29 @@ export default function BookEdit({ id, onCancel, onSaved }) {
     return () => {
       cancelled = true;
     };
-  }, [id]);
+  }, [id, notify]);
+
+  function validate() {
+    const t = titolo.trim();
+    const a = autore.trim();
+    const u = Number(utenteId);
+
+    if (t.length < 3) return "Titolo troppo corto (min 3 caratteri).";
+    if (a.length < 3) return "Autore troppo corto (min 3 caratteri).";
+    if (!Number.isFinite(u) || u <= 0) return "Utente ID non valido.";
+
+    return null;
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
+
+    const errMsg = validate();
+    if (errMsg) {
+      notify?.(errMsg, "error");
+      return;
+    }
+
     setSaving(true);
 
     try {
@@ -72,14 +93,13 @@ export default function BookEdit({ id, onCancel, onSaved }) {
 
       onSaved();
     } catch (e2) {
-      alert(e2.message || "Errore salvataggio");
+      notify?.(e2.message || "Errore salvataggio", "error");
     } finally {
       setSaving(false);
     }
   }
 
-  const canSubmit =
-    titolo.trim().length > 0 && autore.trim().length > 0 && Number(utenteId) > 0;
+  const canSubmit = !validate();
 
   return (
     <div className="panel">

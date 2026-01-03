@@ -4,7 +4,7 @@ import BookReviews from "./bookReviews";
 
 const API_BASE = "/api/books";
 
-export default function BookDetail({ id, onBack, onEdit, onDeleted }) {
+export default function BookDetail({ id, onBack, onEdit, onDeleted, notify }) {
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -44,7 +44,7 @@ export default function BookDetail({ id, onBack, onEdit, onDeleted }) {
       if (!res.ok) throw new Error(`Errore ${res.status}`);
       onDeleted();
     } catch (e) {
-      alert(e.message || "Errore eliminazione");
+      notify?.(e.message || "Errore eliminazione", "error");
     }
   }
 
@@ -88,9 +88,8 @@ export default function BookDetail({ id, onBack, onEdit, onDeleted }) {
             </p>
           </div>
 
-          {/* Liste collegate al libro */}
-          <BookQuotes bookId={id} />
-          <BookReviews bookId={id} />
+          <BookQuotes bookId={id} notify={notify} />
+          <BookReviews bookId={id} notify={notify} />
         </>
       )}
     </div>

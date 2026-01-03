@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export default function BookQuotes({ bookId }) {
+export default function BookQuotes({ bookId, notify }) {
   const [quotes, setQuotes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -28,17 +28,23 @@ export default function BookQuotes({ bookId }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bookId]);
 
+  const trimmed = testo.trim();
+  const isValid = trimmed.length >= 3;
+  const showValidation = testo.length > 0 && !isValid;
+
   async function handleAdd(e) {
     e.preventDefault();
-    const value = testo.trim();
-    if (!value) return;
+    if (!isValid) {
+      notify?.("Citazione troppo corta (min 3 caratteri).", "error");
+      return;
+    }
 
     setSaving(true);
     try {
       const res = await fetch(`/api/books/${bookId}/citazioni`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ testo: value }),
+        body: JSON.stringify({ testo: trimmed }),
       });
 
       if (res.status === 400) {
@@ -49,8 +55,9 @@ export default function BookQuotes({ bookId }) {
 
       setTesto("");
       await loadQuotes();
+      notify?.("✅ Citazione aggiunta");
     } catch (e2) {
-      alert(e2.message || "Errore inserimento citazione");
+      notify?.(e2.message || "Errore inserimento citazione", "error");
     } finally {
       setSaving(false);
     }
@@ -66,7 +73,7 @@ export default function BookQuotes({ bookId }) {
       });
 
       if (res.status === 404) {
-        alert("Citazione non trovata (forse già eliminata).");
+        notify?.("Citazione non trovata (forse già eliminata).", "error");
         await loadQuotes();
         return;
       }
@@ -74,8 +81,9 @@ export default function BookQuotes({ bookId }) {
       if (!res.ok) throw new Error(`Errore ${res.status}`);
 
       await loadQuotes();
+      notify?.("🗑 Citazione eliminata");
     } catch (e) {
-      alert(e.message || "Errore eliminazione citazione");
+      notify?.(e.message || "Errore eliminazione citazione", "error");
     }
   }
 
@@ -87,17 +95,24 @@ export default function BookQuotes({ bookId }) {
         <label className="label">
           Aggiungi citazione
           <input
-            className="input"
+            className={`input ${showValidation ? "inputError" : ""}`}
             value={testo}
             onChange={(e) => setTesto(e.target.value)}
             placeholder='Es. "Non tutti quelli che vagano sono perduti"'
           />
+
+          {showValidation && (
+            <div className="fieldError" style={{ marginTop: 6 }}>
+              Minimo 3 caratteri
+            </div>
+          )}
         </label>
 
         <button
           className="btn btnPrimary"
           type="submit"
-          disabled={saving || !testo.trim()}
+          disabled={saving || !isValid}
+          title={!isValid ? "Inserisci almeno 3 caratteri" : "Aggiungi citazione"}
         >
           {saving ? "Salvataggio..." : "Aggiungi"}
         </button>
@@ -139,4 +154,3 @@ export default function BookQuotes({ bookId }) {
     </div>
   );
 }
-

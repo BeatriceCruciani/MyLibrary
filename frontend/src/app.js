@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./App.css";
 
 import BookList from "./components/bookList";
@@ -9,12 +9,22 @@ import BookEdit from "./components/bookEdit";
 const API_BASE = "/api/books";
 
 export default function App() {
-  const [view, setView] = useState("list"); // "list" | "detail" | "create" | "edit"
+  const [view, setView] = useState("list"); // list | detail | create | edit
   const [books, setBooks] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // ✅ toast
+  const [toast, setToast] = useState(null); // { type: "success"|"error", message: string }
+  const toastTimer = useRef(null);
+
+  function notify(message, type = "success") {
+    setToast({ type, message });
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(null), 2500);
+  }
 
   async function loadBooks() {
     setLoading(true);
@@ -26,6 +36,7 @@ export default function App() {
       setBooks(Array.isArray(data) ? data : []);
     } catch (e) {
       setError(e.message || "Errore di rete");
+      notify(e.message || "Errore di rete", "error");
     } finally {
       setLoading(false);
     }
@@ -58,6 +69,12 @@ export default function App() {
 
   return (
     <div className="page">
+      {toast && (
+        <div className={`toast ${toast.type}`} role="status">
+          {toast.message}
+        </div>
+      )}
+
       <header className="header">
         <h2 className="brand">MyLibrary</h2>
 
@@ -88,9 +105,11 @@ export default function App() {
             onBack={backToList}
             onEdit={() => openEdit(selectedId)}
             onDeleted={() => {
+              notify("✅ Libro eliminato");
               backToList();
               loadBooks();
             }}
+            notify={notify}
           />
         )}
 
@@ -98,9 +117,11 @@ export default function App() {
           <BookCreate
             onCancel={backToList}
             onCreated={() => {
+              notify("✅ Libro creato");
               backToList();
               loadBooks();
             }}
+            notify={notify}
           />
         )}
 
@@ -109,9 +130,11 @@ export default function App() {
             id={selectedId}
             onCancel={() => setView("detail")}
             onSaved={() => {
+              notify("✅ Modifiche salvate");
               setView("detail");
               loadBooks();
             }}
+            notify={notify}
           />
         )}
       </main>
