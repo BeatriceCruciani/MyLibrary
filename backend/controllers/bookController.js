@@ -123,6 +123,45 @@ exports.createBookReview = async (req, res) => {
   }
 };
 
+// DELETE /api/books/:id/citazioni/:quoteId
+exports.deleteBookQuote = async (req, res) => {
+  try {
+    const bookId = Number(req.params.id);
+    const quoteId = Number(req.params.quoteId);
+
+    if (!Number.isInteger(quoteId) || quoteId <= 0) {
+      return res.status(400).json({ error: 'quoteId non valido' });
+    }
+
+    const ok = await Book.deleteQuote(bookId, quoteId);
+    if (!ok) return res.status(404).json({ error: 'Citazione non trovata' });
+
+    return res.json({ message: 'Citazione eliminata con successo' });
+  } catch (err) {
+    console.error('deleteBookQuote error:', err);
+    return res.status(500).json({ error: 'Errore database' });
+  }
+};
+
+// DELETE /api/books/:id/recensioni/:reviewId
+exports.deleteBookReview = async (req, res) => {
+  try {
+    const bookId = Number(req.params.id);
+    const reviewId = Number(req.params.reviewId);
+
+    if (!Number.isInteger(reviewId) || reviewId <= 0) {
+      return res.status(400).json({ error: 'reviewId non valido' });
+    }
+
+    const ok = await Book.deleteReview(bookId, reviewId);
+    if (!ok) return res.status(404).json({ error: 'Recensione non trovata' });
+
+    return res.json({ message: 'Recensione eliminata con successo' });
+  } catch (err) {
+    console.error('deleteBookReview error:', err);
+    return res.status(500).json({ error: 'Errore database' });
+  }
+};
 
 exports.getBookQuotes = async (req, res) => {
   try {

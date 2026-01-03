@@ -18,6 +18,9 @@ router.post('/:id/recensioni', validateId, bookController.createBookReview);
 router.post('/', validateBook, bookController.createBook);
 router.put('/:id', validateId, validateBook, bookController.updateBook);
 
+router.delete('/:id/citazioni/:quoteId', validateId, bookController.deleteBookQuote);
+router.delete('/:id/recensioni/:reviewId', validateId, bookController.deleteBookReview);
+
 router.delete('/:id', validateId, bookController.deleteBook);
 
 module.exports = router;

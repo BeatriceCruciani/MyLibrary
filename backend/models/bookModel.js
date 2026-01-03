@@ -87,6 +87,23 @@ const Book = {
     );
   },
 
+  async deleteQuote(bookId, quoteId) {
+    const result = await query(
+      'DELETE FROM citazioni WHERE id = ? AND libro_id = ?',
+      [quoteId, bookId]
+    );
+    return result.affectedRows > 0;
+  },
+
+  async deleteReview(bookId, reviewId) {
+    const result = await query(
+      'DELETE FROM recensioni WHERE id = ? AND libro_id = ?',
+      [reviewId, bookId]
+    );
+    return result.affectedRows > 0;
+  },
+
+
   async findReviewsByBookId(bookId) {
     return query(
       'SELECT id, testo, libro_id FROM recensioni WHERE libro_id = ? ORDER BY id DESC',
