@@ -87,6 +87,72 @@ exports.updateBook = async (req, res) => {
   }
 };
 
+// POST /api/books/:id/citazioni
+exports.createBookQuote = async (req, res) => {
+  try {
+    const bookId = Number(req.params.id);
+    const { testo } = req.body;
+
+    if (!testo || !testo.trim()) {
+      return res.status(400).json({ error: "testo è obbligatorio" });
+    }
+
+    const created = await Book.createQuote(bookId, testo.trim());
+    return res.status(201).json(created);
+  } catch (err) {
+    console.error("createBookQuote error:", err);
+    return res.status(500).json({ error: "Errore database" });
+  }
+};
+
+// POST /api/books/:id/recensioni
+exports.createBookReview = async (req, res) => {
+  try {
+    const bookId = Number(req.params.id);
+    const { testo } = req.body;
+
+    if (!testo || !testo.trim()) {
+      return res.status(400).json({ error: "testo è obbligatorio" });
+    }
+
+    const created = await Book.createReview(bookId, testo.trim());
+    return res.status(201).json(created);
+  } catch (err) {
+    console.error("createBookReview error:", err);
+    return res.status(500).json({ error: "Errore database" });
+  }
+};
+
+
+exports.getBookQuotes = async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+
+    const quotes = await Book.findQuotesByBookId(id);
+
+    // ritorniamo sempre un array (anche vuoto)
+    res.json(quotes);
+  } catch (err) {
+    console.error('getBookQuotes error:', err);
+    res.status(500).json({ error: 'Errore database' });
+  }
+};
+
+exports.getBookReviews = async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+
+    const reviews = await Book.findReviewsByBookId(id);
+
+    // ritorniamo sempre un array (anche vuoto)
+    res.json(reviews);
+  } catch (err) {
+    console.error('getBookReviews error:', err);
+    res.status(500).json({ error: 'Errore database' });
+  }
+};
+
+
 exports.deleteBook = async (req, res) => {
   try {
     const id = Number(req.params.id);

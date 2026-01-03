@@ -1,4 +1,3 @@
-// models/bookModel.js
 const db = require('../db');
 
 function query(sql, params = []) {
@@ -61,6 +60,40 @@ const Book = {
 
     return result.affectedRows > 0;
   },
+
+    async createQuote(bookId, testo) {
+    const result = await query(
+      "INSERT INTO citazioni (testo, libro_id) VALUES (?, ?)",
+      [testo, bookId]
+    );
+
+    return { id: result.insertId, testo, libro_id: bookId };
+  },
+
+  async createReview(bookId, testo) {
+    const result = await query(
+      "INSERT INTO recensioni (testo, libro_id) VALUES (?, ?)",
+      [testo, bookId]
+    );
+
+    return { id: result.insertId, testo, libro_id: bookId };
+  },
+
+
+    async findQuotesByBookId(bookId) {
+    return query(
+      'SELECT id, testo, libro_id FROM citazioni WHERE libro_id = ? ORDER BY id DESC',
+      [bookId]
+    );
+  },
+
+  async findReviewsByBookId(bookId) {
+    return query(
+      'SELECT id, testo, libro_id FROM recensioni WHERE libro_id = ? ORDER BY id DESC',
+      [bookId]
+    );
+  },
+
 
   /**
    * Cancella libro + figli (citazioni, recensioni) in transazione
