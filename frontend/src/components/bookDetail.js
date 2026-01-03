@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import BookQuotes from "./bookQuotes";
+import BookReviews from "./bookReviews";
 
 const API_BASE = "/api/books";
 
@@ -72,19 +74,24 @@ export default function BookDetail({ id, onBack, onEdit, onDeleted }) {
       {error && <div className="alert">⚠️ {error}</div>}
 
       {!loading && !error && book && (
-        <div className="detailBody">
-          <h3 className="detailTitle">{book.titolo}</h3>
-          <p className="p">
-            <b>Autore:</b> {book.autore}
-          </p>
-          <p className="p">
-            <b>Stato:</b> {book.stato}
-          </p>
-          <p className="p">
-            <b>Utente ID:</b> {book.utente_id}
-          </p>
-          <p className="hint">(Qui poi potremo aggiungere citazioni/recensioni.)</p>
-        </div>
+        <>
+          <div className="detailBody">
+            <h3 className="detailTitle">{book.titolo}</h3>
+            <p className="p">
+              <b>Autore:</b> {book.autore}
+            </p>
+            <p className="p">
+              <b>Stato:</b> {book.stato}
+            </p>
+            <p className="p">
+              <b>Utente ID:</b> {book.utente_id}
+            </p>
+          </div>
+
+          {/* Liste collegate al libro */}
+          <BookQuotes bookId={id} />
+          <BookReviews bookId={id} />
+        </>
       )}
     </div>
   );
