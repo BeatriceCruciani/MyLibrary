@@ -1,0 +1,34 @@
+const express = require('express');
+const router = express.Router();
+
+const bookController = require('../controllers/bookController');
+const validateBook = require('../middleware/validateBook');
+const validateId = require('../middleware/validateId');
+const auth = require('../middleware/auth.middleware');
+
+// ROTTE SPECIFICHE PRIMA
+
+// Libri dell'utente loggato
+router.get('/me/mine', auth, bookController.getMyBooks);
+
+
+// ROTTE PUBBLICHE
+router.get('/', bookController.getAllBooks);
+router.get('/:id', validateId, bookController.getBookById);
+
+router.get('/:id/citazioni', validateId, bookController.getBookQuotes);
+router.get('/:id/recensioni', validateId, bookController.getBookReviews);
+
+// ROTTE PROTETTE (SCRITTURA)
+
+router.post('/', auth, validateBook, bookController.createBook);
+router.put('/:id', auth, validateId, validateBook, bookController.updateBook);
+router.delete('/:id', auth, validateId, bookController.deleteBook);
+
+router.post('/:id/citazioni', auth, validateId, bookController.createBookQuote);
+router.post('/:id/recensioni', auth, validateId, bookController.createBookReview);
+
+router.delete('/:id/citazioni/:quoteId', auth, validateId, bookController.deleteBookQuote);
+router.delete('/:id/recensioni/:reviewId', auth, validateId, bookController.deleteBookReview);
+
+module.exports = router;

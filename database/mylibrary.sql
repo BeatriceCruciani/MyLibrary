@@ -1,4 +1,7 @@
+-- ==============================================
+-- FILE: mylibrary.sql
 -- Contiene database, tabelle e dati di esempio
+-- ==============================================
 
 -- Creazione database se non esiste
 CREATE DATABASE IF NOT EXISTS mylibrary;
@@ -36,6 +39,8 @@ CREATE TABLE IF NOT EXISTS recensioni (
     FOREIGN KEY (libro_id) REFERENCES libri(id)
 );
 
+-- Popolamento dati di esempio
+
 -- Utenti
 INSERT INTO utenti (nome, email) VALUES 
 ('Alice Rossi', 'alice@example.com'),
@@ -56,4 +61,3 @@ INSERT INTO citazioni (testo, libro_id) VALUES
 INSERT INTO recensioni (testo, libro_id) VALUES
 ('Un capolavoro fantasy senza tempo.', 1),
 ('Un libro distopico che fa riflettere.', 2);
-

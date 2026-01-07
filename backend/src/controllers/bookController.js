@@ -10,6 +10,17 @@ exports.getAllBooks = async (req, res) => {
   }
 };
 
+exports.getMyBooks = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const books = await Book.findAllByUser(userId);
+    res.json(books);
+  } catch (err) {
+    console.error('getMyBooks error:', err);
+    res.status(500).json({ error: 'Errore database' });
+  }
+};
+
 exports.getBookById = async (req, res) => {
   try {
     const id = Number(req.params.id);
@@ -28,21 +39,13 @@ exports.getBookById = async (req, res) => {
 
 exports.createBook = async (req, res) => {
   try {
+    // validateBook già normalizza titolo/autore/stato e imposta utente_id = req.user.id
     const { titolo, autore, stato, utente_id } = req.body;
-
-    // validazione minima (poi possiamo spostarla in middleware)
-    if (!titolo || !autore || !utente_id) {
-      return res.status(400).json({
-        error: 'titolo, autore e utente_id sono obbligatori'
-      });
-    }
-
-    const statoFinale = stato || 'da leggere';
 
     const created = await Book.create({
       titolo,
       autore,
-      stato: statoFinale,
+      stato,
       utente_id
     });
 
@@ -56,36 +59,61 @@ exports.createBook = async (req, res) => {
 exports.updateBook = async (req, res) => {
   try {
     const id = Number(req.params.id);
+
+    // validateBook già normalizza + imposta utente_id dal token
     const { titolo, autore, stato, utente_id } = req.body;
-
-    if (!titolo || !autore || !utente_id) {
-      return res.status(400).json({
-        error: 'titolo, autore e utente_id sono obbligatori'
-      });
-    }
-
-    const statoFinale = stato || 'da leggere';
 
     const ok = await Book.update(id, {
       titolo,
       autore,
-      stato: statoFinale,
+      stato,
       utente_id
     });
 
     if (!ok) {
-      return res.status(404).json({ error: 'Libro non trovato' });
+      // può essere: libro non esiste oppure non è tuo
+      return res.status(404).json({ error: 'Libro non trovato o non autorizzato' });
     }
 
     res.json({
       message: 'Libro aggiornato con successo',
-      book: { id, titolo, autore, stato: statoFinale, utente_id }
+      book: { id, titolo, autore, stato, utente_id }
     });
   } catch (err) {
     console.error('updateBook error:', err);
     res.status(500).json({ error: 'Errore database' });
   }
 };
+
+// GET /api/books/:id/citazioni
+exports.getBookQuotes = async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const quotes = await Book.findQuotesByBookId(id);
+    res.json(quotes);
+  } catch (err) {
+    console.error('getBookQuotes error:', err);
+    res.status(500).json({ error: 'Errore database' });
+  }
+};
+
+// GET /api/books/:id/recensioni
+exports.getBookReviews = async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const reviews = await Book.findReviewsByBookId(id);
+    res.json(reviews);
+  } catch (err) {
+    console.error('getBookReviews error:', err);
+    res.status(500).json({ error: 'Errore database' });
+  }
+};
+
+// Helper: verifica che un libro esista (usato per quote/review protette)
+async function ensureBookExists(bookId) {
+  const book = await Book.findById(bookId);
+  return book;
+}
 
 // POST /api/books/:id/citazioni
 exports.createBookQuote = async (req, res) => {
@@ -94,14 +122,23 @@ exports.createBookQuote = async (req, res) => {
     const { testo } = req.body;
 
     if (!testo || !testo.trim()) {
-      return res.status(400).json({ error: "testo è obbligatorio" });
+      return res.status(400).json({ error: 'testo è obbligatorio' });
+    }
+
+    const book = await ensureBookExists(bookId);
+    if (!book) return res.status(404).json({ error: 'Libro non trovato' });
+
+    // (opzionale) enforcement ownership sul libro:
+    // se vuoi che solo il proprietario aggiunga quote al suo libro
+    if (book.utente_id !== req.user.id) {
+      return res.status(403).json({ error: 'Non autorizzato' });
     }
 
     const created = await Book.createQuote(bookId, testo.trim());
-    return res.status(201).json(created);
+    res.status(201).json(created);
   } catch (err) {
-    console.error("createBookQuote error:", err);
-    return res.status(500).json({ error: "Errore database" });
+    console.error('createBookQuote error:', err);
+    res.status(500).json({ error: 'Errore database' });
   }
 };
 
@@ -112,14 +149,21 @@ exports.createBookReview = async (req, res) => {
     const { testo } = req.body;
 
     if (!testo || !testo.trim()) {
-      return res.status(400).json({ error: "testo è obbligatorio" });
+      return res.status(400).json({ error: 'testo è obbligatorio' });
+    }
+
+    const book = await ensureBookExists(bookId);
+    if (!book) return res.status(404).json({ error: 'Libro non trovato' });
+
+    if (book.utente_id !== req.user.id) {
+      return res.status(403).json({ error: 'Non autorizzato' });
     }
 
     const created = await Book.createReview(bookId, testo.trim());
-    return res.status(201).json(created);
+    res.status(201).json(created);
   } catch (err) {
-    console.error("createBookReview error:", err);
-    return res.status(500).json({ error: "Errore database" });
+    console.error('createBookReview error:', err);
+    res.status(500).json({ error: 'Errore database' });
   }
 };
 
@@ -133,13 +177,20 @@ exports.deleteBookQuote = async (req, res) => {
       return res.status(400).json({ error: 'quoteId non valido' });
     }
 
+    const book = await ensureBookExists(bookId);
+    if (!book) return res.status(404).json({ error: 'Libro non trovato' });
+
+    if (book.utente_id !== req.user.id) {
+      return res.status(403).json({ error: 'Non autorizzato' });
+    }
+
     const ok = await Book.deleteQuote(bookId, quoteId);
     if (!ok) return res.status(404).json({ error: 'Citazione non trovata' });
 
-    return res.json({ message: 'Citazione eliminata con successo' });
+    res.json({ message: 'Citazione eliminata con successo' });
   } catch (err) {
     console.error('deleteBookQuote error:', err);
-    return res.status(500).json({ error: 'Errore database' });
+    res.status(500).json({ error: 'Errore database' });
   }
 };
 
@@ -153,53 +204,30 @@ exports.deleteBookReview = async (req, res) => {
       return res.status(400).json({ error: 'reviewId non valido' });
     }
 
+    const book = await ensureBookExists(bookId);
+    if (!book) return res.status(404).json({ error: 'Libro non trovato' });
+
+    if (book.utente_id !== req.user.id) {
+      return res.status(403).json({ error: 'Non autorizzato' });
+    }
+
     const ok = await Book.deleteReview(bookId, reviewId);
     if (!ok) return res.status(404).json({ error: 'Recensione non trovata' });
 
-    return res.json({ message: 'Recensione eliminata con successo' });
+    res.json({ message: 'Recensione eliminata con successo' });
   } catch (err) {
     console.error('deleteBookReview error:', err);
-    return res.status(500).json({ error: 'Errore database' });
-  }
-};
-
-exports.getBookQuotes = async (req, res) => {
-  try {
-    const id = Number(req.params.id);
-
-    const quotes = await Book.findQuotesByBookId(id);
-
-    // ritorniamo sempre un array (anche vuoto)
-    res.json(quotes);
-  } catch (err) {
-    console.error('getBookQuotes error:', err);
     res.status(500).json({ error: 'Errore database' });
   }
 };
-
-exports.getBookReviews = async (req, res) => {
-  try {
-    const id = Number(req.params.id);
-
-    const reviews = await Book.findReviewsByBookId(id);
-
-    // ritorniamo sempre un array (anche vuoto)
-    res.json(reviews);
-  } catch (err) {
-    console.error('getBookReviews error:', err);
-    res.status(500).json({ error: 'Errore database' });
-  }
-};
-
 
 exports.deleteBook = async (req, res) => {
   try {
     const id = Number(req.params.id);
 
-    const ok = await Book.removeCascade(id);
-
+    const ok = await Book.removeCascade(id, req.user.id);
     if (!ok) {
-      return res.status(404).json({ error: 'Libro non trovato' });
+      return res.status(404).json({ error: 'Libro non trovato o non autorizzato' });
     }
 
     res.json({ message: 'Libro eliminato con successo' });
