@@ -1,129 +1,81 @@
 import { useState } from "react";
 
-const API_BASE = "/api/books";
+export default function BookCreate({ onAddBook }) {
+  const [form, setForm] = useState({
+    titolo: "",
+    autore: "",
+    stato: "da leggere",
+  });
 
-export default function BookCreate({ onCancel, onCreated, notify }) {
-  const [titolo, setTitolo] = useState("");
-  const [autore, setAutore] = useState("");
-  const [stato, setStato] = useState("da leggere");
-  const [utenteId, setUtenteId] = useState("1");
-  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  function validate() {
-    const t = titolo.trim();
-    const a = autore.trim();
-    const u = Number(utenteId);
+  const isValid = form.titolo.trim().length > 0 && form.autore.trim().length > 0;
 
-    if (t.length < 3) return "Titolo troppo corto (min 3 caratteri).";
-    if (a.length < 3) return "Autore troppo corto (min 3 caratteri).";
-    if (!Number.isFinite(u) || u <= 0) return "Utente ID non valido.";
-
-    return null;
+  function handleChange(e) {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
+    setError("");
 
-    const errMsg = validate();
-    if (errMsg) {
-      notify?.(errMsg, "error");
+    if (!isValid) {
+      setError("Titolo e autore sono obbligatori.");
       return;
     }
 
-    setSaving(true);
-
     try {
-      const payload = {
-        titolo: titolo.trim(),
-        autore: autore.trim(),
-        stato,
-        utente_id: Number(utenteId),
-      };
-
-      const res = await fetch(API_BASE, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+      setLoading(true);
+      await onAddBook({
+        titolo: form.titolo.trim(),
+        autore: form.autore.trim(),
+        stato: form.stato.trim(),
       });
 
-      if (res.status === 400) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || "Dati non validi");
-      }
-      if (!res.ok) throw new Error(`Errore ${res.status}`);
-
-      setTitolo("");
-      setAutore("");
-      setStato("da leggere");
-      setUtenteId("1");
-
-      onCreated();
-    } catch (e2) {
-      notify?.(e2.message || "Errore creazione", "error");
+      setForm({ titolo: "", autore: "", stato: "da leggere" });
+    } catch (err) {
+      setError(err.message || "Errore creazione libro");
     } finally {
-      setSaving(false);
+      setLoading(false);
     }
   }
 
-  const canSubmit = !validate();
-
   return (
-    <div className="panel">
-      <div className="panelTop">
-        <button className="btn" onClick={onCancel}>
-          ← Indietro
-        </button>
-        <div className="hint">Crea un nuovo libro</div>
-      </div>
+    <div>
+      <h3>Aggiungi libro</h3>
 
-      <form className="form" onSubmit={handleSubmit}>
-        <label className="label">
-          Titolo
-          <input
-            className="input"
-            value={titolo}
-            onChange={(e) => setTitolo(e.target.value)}
-            required
-          />
-        </label>
+      {error && <div className="error-box">{error}</div>}
 
-        <label className="label">
-          Autore
-          <input
-            className="input"
-            value={autore}
-            onChange={(e) => setAutore(e.target.value)}
-            required
-          />
-        </label>
+      <form onSubmit={handleSubmit} style={{ display: "grid", gap: 8 }}>
+        <input
+          type="text"
+          name="titolo"
+          placeholder="Titolo"
+          value={form.titolo}
+          onChange={handleChange}
+        />
 
-        <label className="label">
+        <input
+          type="text"
+          name="autore"
+          placeholder="Autore"
+          value={form.autore}
+          onChange={handleChange}
+        />
+
+        <label style={{ display: "grid", gap: 6 }}>
           Stato
-          <select
-            className="input"
-            value={stato}
-            onChange={(e) => setStato(e.target.value)}
-          >
-            <option value="da leggere">da leggere</option>
-            <option value="in lettura">in lettura</option>
-            <option value="letto">letto</option>
+          <select name="stato" value={form.stato} onChange={handleChange}>
+            <option value="da leggere">Da leggere</option>
+            <option value="in lettura">In lettura</option>
+            <option value="letto">Letto</option>
           </select>
         </label>
 
-        <label className="label">
-          Utente ID
-          <input
-            className="input"
-            type="number"
-            min="1"
-            value={utenteId}
-            onChange={(e) => setUtenteId(e.target.value)}
-            required
-          />
-        </label>
-
-        <button className="btn btnPrimary" type="submit" disabled={saving || !canSubmit}>
-          {saving ? "Salvataggio..." : "Crea"}
+        <button type="submit" disabled={!isValid || loading}>
+          {loading ? "Aggiungo..." : "Aggiungi"}
         </button>
       </form>
     </div>

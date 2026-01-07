@@ -1,135 +1,122 @@
-# MyLibrary
+# MyLibrary 📚
 
-Applicazione web (Single Page Application) per gestire una libreria personale: elenco libri, dettaglio e gestione (CRUD) con stato di lettura.
-
-Componenti:
-- **Frontend**: SPA in **React** (Create React App)
-- **Backend**: API REST in **Node.js + Express**
-- **DBMS**: **MySQL**
+MyLibrary è una web app (Single Page Application) per gestire una libreria personale.
+L’utente può registrarsi e accedere tramite autenticazione JWT, quindi creare e gestire i propri libri e aggiungere **citazioni** e **recensioni** per ogni libro.
 
 ---
 
-## Funzionalità
-- Lista libri
-- Dettaglio libro
-- Creazione, modifica ed eliminazione libro
-- Stato di lettura: `da leggere`, `in lettura`, `letto`
+## Funzionalità principali
 
-Nel database sono presenti anche le tabelle **citazioni** e **recensioni** (già previste nello schema).
+- Registrazione utente (nome, email, password)
+- Login con email + password (JWT)
+- Area privata con i **libri dell’utente loggato**
+- CRUD libri (crea, modifica, elimina)
+- Gestione **citazioni** per libro (aggiungi/elimina)
+- Gestione **recensioni** per libro (aggiungi/elimina)
+- Interfaccia responsive (utilizzabile anche da mobile)
 
 ---
 
 ## Tecnologie utilizzate
 
 ### Frontend
-- React (Create React App / `react-scripts`)
-- Fetch API per le chiamate HTTP
-- CSS (stile custom)
+- **React** (Single Page Application)
+- Fetch wrapper con gestione token JWT (Authorization Bearer)
+- CSS custom (tema beige, responsive)
 
 ### Backend
-- Node.js
-- Express
-- mysql2
-- dotenv
-- cors
-- nodemon (sviluppo)
+- **Node.js + Express**
+- **JWT** per autenticazione (rotte protette)
+- **bcryptjs** per hashing password
 
 ### Database
-- MySQL
-- Script di inizializzazione: `database/mylibrary.sql`
+- **MySQL** (o MariaDB)
+- Script SQL nella cartella `database/` per creare tabelle e dati iniziali (se presenti)
 
 ---
 
 ## Struttura del progetto
-
-```
 MyLibrary/
-  backend/            # API REST (Node/Express)
-  frontend/           # SPA React
+  backend/
+  frontend/
   database/
-    mylibrary.sql     # schema + dati di esempio
-```
+
 
 ---
 
-## Avvio del progetto
+## Requisiti
 
-### Prerequisiti
-- Node.js (consigliata versione LTS)
-- MySQL Server (locale) oppure MySQL in Docker
+Assicurati di avere installato:
 
-### 1) Setup database
-Lo script `database/mylibrary.sql` crea il database `mylibrary`, le tabelle e alcuni dati di esempio.
+- Node.js (consigliato: LTS)
+- npm
+- MySQL / MariaDB
 
-Import da terminale (da root progetto):
+---
 
-```bash
-mysql -u root -p < database/mylibrary.sql
-```
+## Avvio del progetto (step-by-step)
 
-> Se il tuo utente MySQL non è `root`, sostituiscilo nel comando.
+### 1) Database
+1. Avvia MySQL
+2. Crea un database (esempio: `mylibrary`)
+3. Importa lo script SQL presente nella cartella `database/` (se disponibile), ad esempio:
+   - `database/mylibrary.sql`
+   - oppure altri file `.sql`
+
+> Se stai usando MySQL Workbench: apri lo script → esegui.
+
+---
 
 ### 2) Backend
+1. Entra nella cartella backend:
+   ```bash
+   cd backend
 
-```bash
-cd backend
-cp .env.example .env
+   Installa le dipendenze:
+
 npm install
-npm run dev
-```
 
-Il backend parte (di default) su `http://localhost:5000`.
 
-**Configurazione**: modifica `backend/.env` con i parametri corretti:
+Crea il file .env nella cartella backend/ (se non esiste) con una configurazione simile:
 
-```env
+PORT=5000
+
 DB_HOST=localhost
 DB_USER=root
 DB_PASSWORD=your_password
 DB_NAME=mylibrary
-PORT=5000
-```
 
-### 3) Frontend
+JWT_SECRET=una_stringa_molto_lunga_e_random
+JWT_EXPIRES_IN=7d
 
-```bash
-cd frontend
-npm install
+
+Avvia il server:
+
 npm start
-```
-
-Il frontend parte (di default) su `http://localhost:3000`.
-
-#### Proxy API (consigliato)
-Nel file `frontend/package.json` aggiungi:
-
-```json
-{ "proxy": "http://localhost:5000" }
-```
-
-Così il frontend può chiamare le API con path relativo, ad esempio `/api/books`.
-
----
-
-## Endpoints API
-Base path: `/api/books`
-
-- `GET /api/books` — lista libri
-- `GET /api/books/:id` — dettaglio libro
-- `POST /api/books` — crea libro
-- `PUT /api/books/:id` — aggiorna libro
-- `DELETE /api/books/:id` — elimina libro
-
-Esempio body JSON (POST/PUT):
-
-```json
-{ "titolo": "1984", "autore": "George Orwell", "stato": "in lettura", "utente_id": 1 }
-```
-
----
-
-## Test su mobile (web)
-- Chrome → **Ispeziona** → icona **📱** “Toggle device toolbar”
-- In alternativa, apri l’app dal telefono usando l’IP del PC (stessa Wi‑Fi) e avviando il dev server in ascolto su rete.
 
 
+Il backend sarà disponibile su:
+
+http://localhost:5000
+
+
+3) Frontend
+
+Apri un nuovo terminale e vai nella cartella frontend:
+
+cd frontend
+
+
+Installa le dipendenze:
+
+npm install
+
+
+Avvia React:
+
+npm start
+
+
+Apri il browser su:
+
+http://localhost:3000

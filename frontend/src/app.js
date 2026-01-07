@@ -1,143 +1,190 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import "./App.css";
 
-import BookList from "./components/bookList";
-import BookDetail from "./components/bookDetail";
 import BookCreate from "./components/bookCreate";
 import BookEdit from "./components/bookEdit";
+import BookDetail from "./components/bookDetail";
+import AuthPage from "./components/authPage"; // <-- coerente col tuo nome file
 
-const API_BASE = "/api/books";
+import { apiFetch } from "./api";
+import { clearToken, getToken } from "./auth";
 
-export default function App() {
-  const [view, setView] = useState("list"); // list | detail | create | edit
+function App() {
   const [books, setBooks] = useState([]);
-  const [selectedId, setSelectedId] = useState(null);
+  const [selectedBook, setSelectedBook] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+
+  // me = { id, nome, email, ... }
+  const [me, setMe] = useState(null);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // ✅ toast
-  const [toast, setToast] = useState(null); // { type: "success"|"error", message: string }
-  const toastTimer = useRef(null);
-
-  function notify(message, type = "success") {
-    setToast({ type, message });
-    if (toastTimer.current) clearTimeout(toastTimer.current);
-    toastTimer.current = setTimeout(() => setToast(null), 2500);
+  async function loadMe() {
+    const res = await apiFetch("/api/auth/me");
+    setMe(res.user);
   }
 
   async function loadBooks() {
+    const data = await apiFetch("/api/books/me/mine");
+    setBooks(data || []);
+  }
+
+  async function bootstrap() {
+    if (!getToken()) return;
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(API_BASE);
-      if (!res.ok) throw new Error(`Errore ${res.status}`);
-      const data = await res.json();
-      setBooks(Array.isArray(data) ? data : []);
-    } catch (e) {
-      setError(e.message || "Errore di rete");
-      notify(e.message || "Errore di rete", "error");
+      await loadMe();
+      await loadBooks();
+    } catch (err) {
+      setError(err.message || "Errore caricamento dati");
     } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => {
-    loadBooks();
+    bootstrap();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function openDetail(id) {
-    setSelectedId(id);
-    setView("detail");
+  function handleLogout() {
+    clearToken();
+    setMe(null);
+    setBooks([]);
+    setSelectedBook(null);
+    setIsEditing(false);
   }
 
-  function openEdit(id) {
-    setSelectedId(id);
-    setView("edit");
+  async function handleAuthSuccess(user) {
+    setMe(user);
+    await loadBooks();
   }
 
-  function openCreate() {
-    setSelectedId(null);
-    setView("create");
+  async function addBook(newBook) {
+    setError("");
+    try {
+      const created = await apiFetch("/api/books", {
+        method: "POST",
+        body: JSON.stringify({
+          titolo: newBook.titolo,
+          autore: newBook.autore,
+          stato: newBook.stato,
+          // utente_id lo imposta validateBook/backend
+        }),
+      });
+
+      setBooks((prev) => [...prev, created]);
+    } catch (err) {
+      setError(err.message || "Errore creazione libro");
+    }
   }
 
-  function backToList() {
-    setSelectedId(null);
-    setView("list");
+  async function updateBook(updatedBook) {
+    setError("");
+    try {
+      const res = await apiFetch(`/api/books/${updatedBook.id}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          titolo: updatedBook.titolo,
+          autore: updatedBook.autore,
+          stato: updatedBook.stato,
+        }),
+      });
+
+      // backend ritorna: { message, book: {...} }
+      const saved = res.book || res;
+
+      setBooks((prev) => prev.map((b) => (b.id === saved.id ? saved : b)));
+      setSelectedBook(saved);
+      setIsEditing(false);
+    } catch (err) {
+      setError(err.message || "Errore modifica libro");
+    }
+  }
+
+  async function deleteBook(bookId) {
+    setError("");
+    try {
+      await apiFetch(`/api/books/${bookId}`, { method: "DELETE" });
+      setBooks((prev) => prev.filter((b) => b.id !== bookId));
+      if (selectedBook?.id === bookId) setSelectedBook(null);
+    } catch (err) {
+      setError(err.message || "Errore eliminazione libro");
+    }
+  }
+
+  if (!getToken()) {
+    return <AuthPage onAuthSuccess={handleAuthSuccess} />;
   }
 
   return (
-    <div className="page">
-      {toast && (
-        <div className={`toast ${toast.type}`} role="status">
-          {toast.message}
+    <div className="App">
+      <header className="app-header">
+        <div className="brand">
+          <h1>MyLibrary</h1>
+          {(me?.nome || me?.email) && (
+            <span className="user-badge">👤 {me.nome || me.email}</span>
+          )}
         </div>
-      )}
 
-      <header className="header">
-        <h2 className="brand">MyLibrary</h2>
-
-        <div className="headerActions">
-          <button className="btn" onClick={backToList}>
-            Lista
-          </button>
-          <button className="btn btnPrimary" onClick={openCreate}>
-            + Nuovo
-          </button>
-          <button className="btn" onClick={loadBooks} title="Ricarica">
-            ↻
-          </button>
-        </div>
+        <button className="logout" onClick={handleLogout}>
+          Logout
+        </button>
       </header>
 
-      <main className="main">
-        {error && <div className="alert">⚠️ {error}</div>}
-        {loading && <div>Caricamento...</div>}
+      {error && <div className="error-box">{error}</div>}
+      {loading && <p>Caricamento...</p>}
 
-        {!loading && view === "list" && (
-          <BookList books={books} onSelect={openDetail} />
-        )}
+      <div className="layout">
+        <aside className="sidebar">
+          <h2>I miei libri</h2>
+          <ul className="book-list">
+            {books.map((book) => (
+              <li key={book.id}>
+                <button
+                  className={selectedBook?.id === book.id ? "selected" : ""}
+                  onClick={() => {
+                    setSelectedBook(book);
+                    setIsEditing(false);
+                  }}
+                >
+                  {book.titolo}
+                </button>
+              </li>
+            ))}
+          </ul>
 
-        {view === "detail" && selectedId != null && (
-          <BookDetail
-            id={selectedId}
-            onBack={backToList}
-            onEdit={() => openEdit(selectedId)}
-            onDeleted={() => {
-              notify("✅ Libro eliminato");
-              backToList();
-              loadBooks();
-            }}
-            notify={notify}
-          />
-        )}
+          <BookCreate onAddBook={addBook} />
+        </aside>
 
-        {view === "create" && (
-          <BookCreate
-            onCancel={backToList}
-            onCreated={() => {
-              notify("✅ Libro creato");
-              backToList();
-              loadBooks();
-            }}
-            notify={notify}
-          />
-        )}
+        <main className="content">
+          {!selectedBook && (
+            <div className="empty-state">
+              <p>Seleziona un libro dalla lista oppure creane uno nuovo.</p>
+            </div>
+          )}
 
-        {view === "edit" && selectedId != null && (
-          <BookEdit
-            id={selectedId}
-            onCancel={() => setView("detail")}
-            onSaved={() => {
-              notify("✅ Modifiche salvate");
-              setView("detail");
-              loadBooks();
-            }}
-            notify={notify}
-          />
-        )}
-      </main>
+          {selectedBook && !isEditing && (
+            <BookDetail
+              book={selectedBook}
+              onEdit={() => setIsEditing(true)}
+              onDelete={() => deleteBook(selectedBook.id)}
+            />
+          )}
+
+          {selectedBook && isEditing && (
+            <BookEdit
+              book={selectedBook}
+              onCancel={() => setIsEditing(false)}
+              onUpdateBook={updateBook}
+            />
+          )}
+        </main>
+      </div>
     </div>
   );
 }
+
+export default App;

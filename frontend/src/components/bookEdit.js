@@ -1,170 +1,91 @@
 import { useEffect, useState } from "react";
 
-const API_BASE = "/api/books";
-
-export default function BookEdit({ id, onCancel, onSaved, notify }) {
+export default function BookEdit({ book, onCancel, onUpdateBook }) {
+  const [form, setForm] = useState({ titolo: "", autore: "", stato: "da leggere" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const [titolo, setTitolo] = useState("");
-  const [autore, setAutore] = useState("");
-  const [stato, setStato] = useState("da leggere");
-  const [utenteId, setUtenteId] = useState("1");
-
-  const [saving, setSaving] = useState(false);
-
   useEffect(() => {
-    let cancelled = false;
+    if (!book) return;
+    setForm({
+      titolo: book.titolo || "",
+      autore: book.autore || "",
+      stato: book.stato || "da leggere",
+    });
+  }, [book]);
 
-    (async () => {
-      setLoading(true);
-      setError("");
+  const isValid = form.titolo.trim().length > 0 && form.autore.trim().length > 0;
 
-      try {
-        const res = await fetch(`${API_BASE}/${id}`);
-        if (res.status === 404) throw new Error("Libro non trovato");
-        if (!res.ok) throw new Error(`Errore ${res.status}`);
-        const data = await res.json();
-
-        if (!cancelled) {
-          setTitolo(data.titolo ?? "");
-          setAutore(data.autore ?? "");
-          setStato(data.stato ?? "da leggere");
-          setUtenteId(String(data.utente_id ?? "1"));
-        }
-      } catch (e) {
-        if (!cancelled) {
-          setError(e.message || "Errore di rete");
-          notify?.(e.message || "Errore di rete", "error");
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [id, notify]);
-
-  function validate() {
-    const t = titolo.trim();
-    const a = autore.trim();
-    const u = Number(utenteId);
-
-    if (t.length < 3) return "Titolo troppo corto (min 3 caratteri).";
-    if (a.length < 3) return "Autore troppo corto (min 3 caratteri).";
-    if (!Number.isFinite(u) || u <= 0) return "Utente ID non valido.";
-
-    return null;
+  function handleChange(e) {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
+    setError("");
 
-    const errMsg = validate();
-    if (errMsg) {
-      notify?.(errMsg, "error");
+    if (!isValid) {
+      setError("Titolo e autore sono obbligatori.");
       return;
     }
 
-    setSaving(true);
-
     try {
-      const payload = {
-        titolo: titolo.trim(),
-        autore: autore.trim(),
-        stato,
-        utente_id: Number(utenteId),
-      };
-
-      const res = await fetch(`${API_BASE}/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+      setLoading(true);
+      await onUpdateBook({
+        ...book,
+        titolo: form.titolo.trim(),
+        autore: form.autore.trim(),
+        stato: form.stato.trim(),
       });
-
-      if (res.status === 400) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || "Dati non validi");
-      }
-      if (res.status === 404) throw new Error("Libro non trovato");
-      if (!res.ok) throw new Error(`Errore ${res.status}`);
-
-      onSaved();
-    } catch (e2) {
-      notify?.(e2.message || "Errore salvataggio", "error");
+    } catch (err) {
+      setError(err.message || "Errore aggiornamento libro");
     } finally {
-      setSaving(false);
+      setLoading(false);
     }
   }
 
-  const canSubmit = !validate();
-
   return (
-    <div className="panel">
-      <div className="panelTop">
-        <button className="btn" onClick={onCancel}>
-          ← Indietro
-        </button>
-        <div className="hint">Modifica libro</div>
-      </div>
+    <div>
+      <h2>Modifica libro</h2>
 
-      {loading && <div>Caricamento...</div>}
-      {error && <div className="alert">⚠️ {error}</div>}
+      {error && <div className="error-box">{error}</div>}
 
-      {!loading && !error && (
-        <form className="form" onSubmit={handleSubmit}>
-          <label className="label">
-            Titolo
-            <input
-              className="input"
-              value={titolo}
-              onChange={(e) => setTitolo(e.target.value)}
-              required
-            />
-          </label>
+      <form onSubmit={handleSubmit} style={{ display: "grid", gap: 8 }}>
+        <input
+          type="text"
+          name="titolo"
+          placeholder="Titolo"
+          value={form.titolo}
+          onChange={handleChange}
+        />
 
-          <label className="label">
-            Autore
-            <input
-              className="input"
-              value={autore}
-              onChange={(e) => setAutore(e.target.value)}
-              required
-            />
-          </label>
+        <input
+          type="text"
+          name="autore"
+          placeholder="Autore"
+          value={form.autore}
+          onChange={handleChange}
+        />
 
-          <label className="label">
-            Stato
-            <select
-              className="input"
-              value={stato}
-              onChange={(e) => setStato(e.target.value)}
-            >
-              <option value="da leggere">da leggere</option>
-              <option value="in lettura">in lettura</option>
-              <option value="letto">letto</option>
-            </select>
-          </label>
+        <label style={{ display: "grid", gap: 6 }}>
+          Stato
+          <select name="stato" value={form.stato} onChange={handleChange}>
+            <option value="da leggere">Da leggere</option>
+            <option value="in lettura">In lettura</option>
+            <option value="letto">Letto</option>
+          </select>
+        </label>
 
-          <label className="label">
-            Utente ID
-            <input
-              className="input"
-              type="number"
-              min="1"
-              value={utenteId}
-              onChange={(e) => setUtenteId(e.target.value)}
-              required
-            />
-          </label>
-
-          <button className="btn btnPrimary" type="submit" disabled={saving || !canSubmit}>
-            {saving ? "Salvataggio..." : "Salva modifiche"}
+        <div style={{ display: "flex", gap: 8, marginTop: 6 }}>
+          <button type="submit" disabled={!isValid || loading}>
+            {loading ? "Salvo..." : "Salva"}
           </button>
-        </form>
-      )}
+          <button type="button" onClick={onCancel}>
+            Annulla
+          </button>
+        </div>
+      </form>
     </div>
   );
 }
