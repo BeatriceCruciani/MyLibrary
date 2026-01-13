@@ -1,122 +1,161 @@
-# MyLibrary 📚
+# 📚 MyLibrary – Web Application
 
-MyLibrary è una web app (Single Page Application) per gestire una libreria personale.
-L’utente può registrarsi e accedere tramite autenticazione JWT, quindi creare e gestire i propri libri e aggiungere **citazioni** e **recensioni** per ogni libro.
+MyLibrary è un’applicazione web per la gestione di una libreria personale.  
+L’utente può visualizzare libri, aggiungere citazioni e recensioni, e interagire con i dati tramite un’interfaccia web responsive.
 
----
-
-## Funzionalità principali
-
-- Registrazione utente (nome, email, password)
-- Login con email + password (JWT)
-- Area privata con i **libri dell’utente loggato**
-- CRUD libri (crea, modifica, elimina)
-- Gestione **citazioni** per libro (aggiungi/elimina)
-- Gestione **recensioni** per libro (aggiungi/elimina)
-- Interfaccia responsive (utilizzabile anche da mobile)
+Il progetto è stato realizzato come parte del modulo 1 dell’esame di **Applicazioni Web e Basi di Dati**.
 
 ---
 
-## Tecnologie utilizzate
+## 🚀 Funzionalità principali
 
-### Frontend
-- **React** (Single Page Application)
-- Fetch wrapper con gestione token JWT (Authorization Bearer)
-- CSS custom (tema beige, responsive)
+- Autenticazione tramite JWT
+- Visualizzazione dei libri associati all’utente loggato
+- Visualizzazione elenco libri
+- Dettaglio di un libro
+- Inserimento e visualizzazione recensioni
+- Inserimento e visualizzazione citazioni
+- Interfaccia responsive, fruibile anche da dispositivi mobile
+
+---
+
+## 🧱 Architettura del progetto
+
+Il progetto segue il paradigma **Single Page Application (SPA)** ed è suddiviso in:
+
+- Backend: API REST (Node.js / Express)
+- Frontend: applicazione web (React)
+- Database: sistema relazionale per la persistenza dei dati (MySQL)
+
+Struttura del progetto:
+
+    MyLibrary/
+    ├── backend/
+    │   ├── src/
+    │   │   ├── controllers/
+    │   │   ├── models/
+    │   │   ├── routes/
+    │   │   ├── middleware/
+    │   │   └── app.js
+    │   └── package.json
+    │
+    ├── frontend/
+    │   ├── src/
+    │   │   ├── components/
+    │   │   ├── pages/
+    │   │   ├── services/
+    │   │   └── App.jsx
+    │   └── package.json
+
+---
+
+## 🛠 Tecnologie utilizzate
 
 ### Backend
-- **Node.js + Express**
-- **JWT** per autenticazione (rotte protette)
-- **bcryptjs** per hashing password
+- Node.js
+- Express.js
+- JSON Web Token (JWT)
+- MySQL – gestito tramite MySQL Workbench
+- Pattern MVC (controllers / models / routes)
 
-### Database
-- **MySQL** (o MariaDB)
-- Script SQL nella cartella `database/` per creare tabelle e dati iniziali (se presenti)
-
----
-
-## Struttura del progetto
-MyLibrary/
-  backend/
-  frontend/
-  database/
-
+### Frontend
+- React
+- React Router
+- Fetch API / Axios
+- CSS responsive
 
 ---
 
-## Requisiti
+## 🗄 Database
 
-Assicurati di avere installato:
+Il database gestisce le seguenti entità:
 
-- Node.js (consigliato: LTS)
+- Utenti
+- Libri
+- Recensioni
+- Citazioni
+
+Ogni recensione e citazione è associata a uno specifico libro tramite relazioni tra le tabelle.  
+L’accesso ad alcune risorse è protetto tramite autenticazione JWT.
+
+---
+
+## ⚙️ Installazione e avvio del progetto
+
+### Requisiti
+- Node.js (>= 18)
 - npm
-- MySQL / MariaDB
+- MySQL
+- MySQL Workbench
 
 ---
 
-## Avvio del progetto (step-by-step)
+### 1️⃣ Clonare il repository
 
-### 1) Database
-1. Avvia MySQL
-2. Crea un database (esempio: `mylibrary`)
-3. Importa lo script SQL presente nella cartella `database/` (se disponibile), ad esempio:
-   - `database/mylibrary.sql`
-   - oppure altri file `.sql`
-
-> Se stai usando MySQL Workbench: apri lo script → esegui.
+    git clone https://github.com/tuo-username/MyLibrary.git
+    cd MyLibrary
 
 ---
 
-### 2) Backend
-1. Entra nella cartella backend:
-   ```bash
-   cd backend
+### 2️⃣ Configurare le variabili d’ambiente (Backend)
 
-   Installa le dipendenze:
+Creare un file `.env` nella cartella `backend/` con i seguenti parametri (esempio):
 
-npm install
+    PORT=5000
+    JWT_SECRET=your_secret_key
 
+    DB_HOST=localhost
+    DB_USER=your_db_user
+    DB_PASSWORD=your_db_password
+    DB_NAME=your_db_name
 
-Crea il file .env nella cartella backend/ (se non esiste) con una configurazione simile:
+---
 
-PORT=5000
+### 3️⃣ Avvio Backend
 
-DB_HOST=localhost
-DB_USER=root
-DB_PASSWORD=your_password
-DB_NAME=mylibrary
-
-JWT_SECRET=una_stringa_molto_lunga_e_random
-JWT_EXPIRES_IN=7d
-
-
-Avvia il server:
-
-npm start
-
+    cd backend
+    npm install
+    npm start
 
 Il backend sarà disponibile su:
 
-http://localhost:5000
+    http://localhost:5000
 
+---
 
-3) Frontend
+### 4️⃣ Avvio Frontend
 
-Apri un nuovo terminale e vai nella cartella frontend:
+Aprire un nuovo terminale ed eseguire:
 
-cd frontend
+    cd frontend
+    npm install
+    npm start
 
+Il frontend sarà disponibile su:
 
-Installa le dipendenze:
+    http://localhost:3000
 
-npm install
+---
 
+## 🔐 Autenticazione
 
-Avvia React:
+L’applicazione utilizza JSON Web Token (JWT).
 
-npm start
+- Al login viene restituito un token
+- Il token viene inviato nelle richieste protette tramite header:
+  Authorization: Bearer <token>
+- Le rotte protette consentono l’accesso ai dati dell’utente autenticato
 
+---
 
-Apri il browser su:
+## 📱 Responsive Design
 
-http://localhost:3000
+L’interfaccia è progettata per essere utilizzabile sia su desktop che su dispositivi mobili.
+
+---
+
+## 👤 Autore
+
+- Beatrice Cruciani  
+- Progetto individuale  
+- Università degli Studi di Camerino
