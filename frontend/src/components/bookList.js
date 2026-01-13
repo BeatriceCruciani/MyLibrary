@@ -1,3 +1,11 @@
+/**
+ * BookList — componente lista + filtri/ricerca (UI).
+ *
+ * Responsabilità:
+ * - gestire filtri lato client (stato: tutti/da leggere/in lettura/letto)
+ * - gestire ricerca per titolo/autore
+ * - mostrare una lista filtrata e “pulita” dei libri
+ */
 import { useMemo, useState } from "react";
 
 export default function BookList({ books, onSelect }) {

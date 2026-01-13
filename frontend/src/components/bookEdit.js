@@ -1,3 +1,11 @@
+/**
+ * BookEdit — form di modifica di un libro.
+ *
+ * Responsabilità:
+ * - clonare i dati del libro in uno stato "form" modificabile
+ * - validazione minima
+ * - inviare al parent l'oggetto aggiornato tramite onUpdateBook(updatedBook)
+ */
 import { useEffect, useState } from "react";
 
 export default function BookEdit({ book, onCancel, onUpdateBook }) {

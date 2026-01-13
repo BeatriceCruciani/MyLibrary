@@ -1,18 +1,34 @@
+/**
+ * Model Libro (data access layer)
+ * Contiene tutte le query SQL relative a:
+ * - libri
+ * - citazioni
+ * - recensioni
+ *
+ * qui NON ci sono res/req, solo accesso al DB.
+ */
 const db = require('../db');
 
 const Book = {
-  //  BOOKS
-
+  /**
+   * Recupera tutti i libri.
+   */
   async findAll() {
     const [rows] = await db.query('SELECT * FROM libri ORDER BY id DESC');
     return rows;
   },
 
+  /**
+   * Recupera un libro per ID.
+   */
   async findById(id) {
     const [rows] = await db.query('SELECT * FROM libri WHERE id = ?', [id]);
     return rows[0];
   },
 
+  /**
+   * Recupera i libri appartenenti a uno specifico utente.
+   */
   async findAllByUser(userId) {
     const [rows] = await db.query(
       'SELECT * FROM libri WHERE utente_id = ? ORDER BY id DESC',
@@ -21,6 +37,9 @@ const Book = {
     return rows;
   },
 
+  /**
+   * Crea un libro e restituisce l'oggetto creato.
+   */
   async create({ titolo, autore, stato, utente_id }) {
     const [result] = await db.query(
       'INSERT INTO libri (titolo, autore, stato, utente_id) VALUES (?, ?, ?, ?)',
@@ -36,7 +55,10 @@ const Book = {
     };
   },
 
-  // Aggiorna SOLO se il libro appartiene all'utente
+  /**
+   * Aggiorna un libro SOLO se appartiene all'utente (ownership check in SQL).
+   * Ritorna true se almeno una riga è stata modificata.
+   */
   async update(id, { titolo, autore, stato, utente_id }) {
     const [result] = await db.query(
       `UPDATE libri
@@ -48,7 +70,9 @@ const Book = {
     return result.affectedRows > 0;
   },
 
-  // Elimina SOLO se il libro appartiene all'utente
+  /**
+   * Elimina un libro SOLO se appartiene all'utente.
+   */
   async remove(id, utente_id) {
     const [result] = await db.query(
       'DELETE FROM libri WHERE id = ? AND utente_id = ?',
@@ -57,8 +81,10 @@ const Book = {
     return result.affectedRows > 0;
   },
 
-  //  CITAZIONI
-    
+  
+  /**
+   * Inserisce una citazione per un libro.
+   */
   async createQuote(bookId, testo) {
     const [result] = await db.query(
       'INSERT INTO citazioni (testo, libro_id) VALUES (?, ?)',
@@ -68,6 +94,9 @@ const Book = {
     return { id: result.insertId, testo, libro_id: bookId };
   },
 
+  /**
+   * Recupera tutte le citazioni di un libro.
+   */
   async findQuotesByBookId(bookId) {
     const [rows] = await db.query(
       'SELECT id, testo, libro_id FROM citazioni WHERE libro_id = ? ORDER BY id DESC',
@@ -76,6 +105,9 @@ const Book = {
     return rows;
   },
 
+  /**
+   * Elimina una citazione (vincolata al libro).
+   */
   async deleteQuote(bookId, quoteId) {
     const [result] = await db.query(
       'DELETE FROM citazioni WHERE id = ? AND libro_id = ?',
@@ -84,8 +116,10 @@ const Book = {
     return result.affectedRows > 0;
   },
 
-  //  RECENSIONI
-    
+  
+  /**
+   * Inserisce una recensione per un libro.
+   */  
   async createReview(bookId, testo) {
     const [result] = await db.query(
       'INSERT INTO recensioni (testo, libro_id) VALUES (?, ?)',
@@ -95,6 +129,9 @@ const Book = {
     return { id: result.insertId, testo, libro_id: bookId };
   },
 
+  /**
+   * Recupera tutte le recensioni di un libro.
+   */
   async findReviewsByBookId(bookId) {
     const [rows] = await db.query(
       'SELECT id, testo, libro_id FROM recensioni WHERE libro_id = ? ORDER BY id DESC',
@@ -103,6 +140,9 @@ const Book = {
     return rows;
   },
 
+  /**
+   * Elimina una recensione (vincolata al libro).
+   */
   async deleteReview(bookId, reviewId) {
     const [result] = await db.query(
       'DELETE FROM recensioni WHERE id = ? AND libro_id = ?',
@@ -111,10 +151,15 @@ const Book = {
     return result.affectedRows > 0;
   },
 
-  //  DELETE CASCADE (LIBRO + FIGLI)
-    // - transazione
-    // - ownership check
-    
+  /**
+   * DELETE CASCADE
+   * Elimina un libro e i suoi record figli (citazioni/recensioni) in transazione.
+   * - controlla ownership
+   * - elimina prima le tabelle figlie
+   * - poi elimina il libro
+   *
+   * Ritorna true se eliminato, false se non esiste o non autorizzato.
+   */
   async removeCascade(id, utente_id) {
     const conn = await db.getConnection();
 

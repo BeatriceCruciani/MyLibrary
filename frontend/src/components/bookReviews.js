@@ -1,3 +1,11 @@
+/**
+ * BookReviews — gestione recensioni associate a un libro.
+ *
+ * Responsabilità:
+ * - caricare recensioni dal backend: GET /api/books/:id/recensioni
+ * - aggiungere recensione: POST /api/books/:id/recensioni
+ * - aggiornare la UI senza ricaricare la pagina
+ */
 import { useEffect, useState } from "react";
 import { apiFetch } from "../api";
 

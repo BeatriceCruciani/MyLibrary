@@ -1,3 +1,11 @@
+/**
+ * App (SPA) - componente principale del frontend.
+ *
+ * Gestisce:
+ * - stato globale minimo (lista libri, vista corrente, libro selezionato)
+ * - caricamento dati dal backend (GET /api/books)
+ * - navigazione interna tra viste (list/detail/create/edit) senza React Router
+ */
 import { useEffect, useState } from "react";
 import "./App.css";
 
@@ -10,26 +18,44 @@ import { apiFetch } from "./api";
 import { clearToken, getToken } from "./auth";
 
 function App() {
+  // Lista libri dell'utente autenticato
   const [books, setBooks] = useState([]);
+  // Libro attualmente selezionato nella sidebar
   const [selectedBook, setSelectedBook] = useState(null);
+  // Flag UI: se true mostra la schermata di modifica
   const [isEditing, setIsEditing] = useState(false);
 
-  // me = { id, nome, email, ... }
+  // Dati utente loggato (es: { id, nome, email })
   const [me, setMe] = useState(null);
 
+  // Stato caricamento e gestione errori
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+
+  /**
+   * Carica i dati del profilo dell'utente autenticato.
+   * Endpoint protetto: richiede Authorization: Bearer <token>
+   */
   async function loadMe() {
     const res = await apiFetch("/api/auth/me");
     setMe(res.user);
   }
 
+  /**
+   * Carica i libri dell'utente loggato.
+   * Endpoint protetto: ritorna solo i libri di proprietà dell’utente.
+   */
   async function loadBooks() {
     const data = await apiFetch("/api/books/me/mine");
     setBooks(data || []);
   }
 
+  /**
+   * Bootstrap iniziale:
+   * se c'è un token, carica profilo utente e lista libri.
+   * Se non c'è token, non carica nulla e verrà mostrata AuthPage.
+   */
   async function bootstrap() {
     if (!getToken()) return;
     setLoading(true);
@@ -38,17 +64,27 @@ function App() {
       await loadMe();
       await loadBooks();
     } catch (err) {
+      // In caso di token scaduto/non valido, apiFetch può già pulire il token.
       setError(err.message || "Errore caricamento dati");
     } finally {
       setLoading(false);
     }
   }
 
+  /**
+   * useEffect di mount: esegue una sola volta all'avvio dell'app.
+   */
   useEffect(() => {
     bootstrap();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+
+  /**
+   * Logout:
+   * - rimuove token
+   * - resetta lo stato frontend per tornare alla pagina di login
+   */
   function handleLogout() {
     clearToken();
     setMe(null);
@@ -57,11 +93,20 @@ function App() {
     setIsEditing(false);
   }
 
+  /**
+   * Callback richiamata da AuthPage dopo login/register avvenuto con successo.
+   * Qui l'app aggiorna lo stato utente e carica subito i libri.
+   */
   async function handleAuthSuccess(user) {
     setMe(user);
     await loadBooks();
   }
 
+  /**
+   * Crea un nuovo libro (POST /api/books)
+   * Nota: utente_id non viene inviato dal client perché viene impostato dal backend
+   * tramite il token JWT (middleware validateBook).
+   */
   async function addBook(newBook) {
     setError("");
     try {
@@ -81,6 +126,10 @@ function App() {
     }
   }
 
+  /**
+   * Aggiorna un libro (PUT /api/books/:id)
+   * Il backend può ritornare { message, book } oppure direttamente il libro.
+   */
   async function updateBook(updatedBook) {
     setError("");
     try {
@@ -104,6 +153,10 @@ function App() {
     }
   }
 
+  /**
+   * Elimina un libro (DELETE /api/books/:id)
+   * Dopo l'eliminazione aggiorna la lista e pulisce la selezione se necessario.
+   */
   async function deleteBook(bookId) {
     setError("");
     try {
@@ -114,7 +167,10 @@ function App() {
       setError(err.message || "Errore eliminazione libro");
     }
   }
-
+  /**
+   * Se non esiste un token, mostriamo la pagina di autenticazione.
+   * AuthPage si occupa di login/register e, al successo, richiama onAuthSuccess.
+   */
   if (!getToken()) {
     return <AuthPage onAuthSuccess={handleAuthSuccess} />;
   }

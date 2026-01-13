@@ -1,3 +1,13 @@
+/**
+ * BookCreate — form di creazione di un libro.
+ *
+ * Responsabilità:
+ * - gestire lo stato del form (titolo/autore/stato)
+ * - validazione minima lato client (coerenza UX)
+ * - inviare i dati al parent via onAddBook(newBook)
+ *
+ * Nota: la chiamata POST viene effettuata in App.js (addBook) per centralizzare la logica.
+ */
 import { useState } from "react";
 
 export default function BookCreate({ onAddBook }) {

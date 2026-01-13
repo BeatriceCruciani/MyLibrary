@@ -8,19 +8,18 @@ const auth = require('../middleware/auth.middleware');
 
 // ROTTE SPECIFICHE PRIMA
 
-// Libri dell'utente loggato
+// Libri dell'utente loggato (protetta)
 router.get('/me/mine', auth, bookController.getMyBooks);
 
 
-// ROTTE PUBBLICHE
+// ROTTE PUBBLICHE (lettura)
 router.get('/', bookController.getAllBooks);
 router.get('/:id', validateId, bookController.getBookById);
 
 router.get('/:id/citazioni', validateId, bookController.getBookQuotes);
 router.get('/:id/recensioni', validateId, bookController.getBookReviews);
 
-// ROTTE PROTETTE (SCRITTURA)
-
+// ROTTE PROTETTE (scrittura/modifica)
 router.post('/', auth, validateBook, bookController.createBook);
 router.put('/:id', auth, validateId, validateBook, bookController.updateBook);
 router.delete('/:id', auth, validateId, bookController.deleteBook);

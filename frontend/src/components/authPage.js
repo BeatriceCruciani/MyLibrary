@@ -1,3 +1,13 @@
+/**
+ * AuthPage — pagina di autenticazione.
+ *
+ * Gestisce:
+ * - form di login e registrazione (mode switch)
+ * - validazione minima lato client (email/password/nome)
+ * - chiamate al backend (/api/auth/login, /api/auth/register)
+ * - salvataggio token via setToken()
+ * - notifica al parent (App) tramite onAuthSuccess(user)
+ */
 import { useMemo, useState } from "react";
 import { apiFetch } from "../api";
 import { setToken } from "../auth";
@@ -9,21 +19,32 @@ export default function AuthPage({ onAuthSuccess }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // Aggiorna i campi del form in modo generico usando name=""
   function updateField(e) {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   }
 
+  // Validazione email semplice
   const emailOk = useMemo(() => {
     const v = form.email.trim();
     return v.includes("@") && v.includes(".") && v.length >= 5;
   }, [form.email]);
 
+  // backend: nome min 2, password min 6
   const nomeOk = useMemo(() => form.nome.trim().length >= 2, [form.nome]); // backend: min 2
   const passwordOk = useMemo(() => form.password.trim().length >= 6, [form.password]); // backend: min 6
 
+  // Validazione complessiva: in register serve anche nome
   const isValid =
     mode === "register" ? nomeOk && emailOk && passwordOk : emailOk && passwordOk;
 
+
+  /**
+   * Submit:
+   * - login: /api/auth/login
+   * - register: /api/auth/register
+   * Salva token e comunica al parent l'utente autenticato.
+   */  
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");

@@ -1,5 +1,13 @@
+/**
+ * Controller libri / citazioni / recensioni
+ * logica applicativa delle API (REST).
+ */
 const Book = require('../models/bookModel');
 
+/**
+ * GET /api/books
+ * Endpoint pubblico: restituisce tutti i libri.
+ */
 exports.getAllBooks = async (req, res) => {
   try {
     const books = await Book.findAll();
@@ -10,6 +18,12 @@ exports.getAllBooks = async (req, res) => {
   }
 };
 
+
+/**
+ * GET /api/books/me/mine
+ * Endpoint protetto: restituisce solo i libri dell'utente autenticato.
+ * req.user viene popolato dal middleware auth (JWT).
+ */
 exports.getMyBooks = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -21,6 +35,11 @@ exports.getMyBooks = async (req, res) => {
   }
 };
 
+
+/**
+ * GET /api/books/:id
+ * Endpoint pubblico: recupera un libro per ID.
+ */
 exports.getBookById = async (req, res) => {
   try {
     const id = Number(req.params.id);
@@ -37,6 +56,12 @@ exports.getBookById = async (req, res) => {
   }
 };
 
+
+/**
+ * POST /api/books
+ * Endpoint protetto: crea un libro.
+ * validateBook normalizza i campi e imposta sempre utente_id dal token JWT.
+ */
 exports.createBook = async (req, res) => {
   try {
     // validateBook già normalizza titolo/autore/stato e imposta utente_id = req.user.id
@@ -56,6 +81,12 @@ exports.createBook = async (req, res) => {
   }
 };
 
+
+/**
+ * PUT /api/books/:id
+ * Endpoint protetto: aggiorna un libro solo se appartiene all'utente autenticato.
+ * Il controllo ownership è nella query (WHERE id=? AND utente_id=?).
+ */
 exports.updateBook = async (req, res) => {
   try {
     const id = Number(req.params.id);
@@ -71,7 +102,7 @@ exports.updateBook = async (req, res) => {
     });
 
     if (!ok) {
-      // può essere: libro non esiste oppure non è tuo
+      // può essere libro non esiste oppure non è tuo
       return res.status(404).json({ error: 'Libro non trovato o non autorizzato' });
     }
 
@@ -85,7 +116,11 @@ exports.updateBook = async (req, res) => {
   }
 };
 
-// GET /api/books/:id/citazioni
+
+/**
+ * GET /api/books/:id/citazioni
+ * Endpoint pubblico: elenco citazioni del libro.
+ */
 exports.getBookQuotes = async (req, res) => {
   try {
     const id = Number(req.params.id);
@@ -97,7 +132,11 @@ exports.getBookQuotes = async (req, res) => {
   }
 };
 
-// GET /api/books/:id/recensioni
+
+/**
+ * GET /api/books/:id/recensioni
+ * Endpoint pubblico: elenco recensioni del libro.
+ */
 exports.getBookReviews = async (req, res) => {
   try {
     const id = Number(req.params.id);
@@ -109,13 +148,22 @@ exports.getBookReviews = async (req, res) => {
   }
 };
 
-// Helper: verifica che un libro esista (usato per quote/review protette)
+
+/**
+ * Helper: verifica che il libro esista.
+ * Utile per le rotte protette su citazioni/recensioni.
+ */
 async function ensureBookExists(bookId) {
   const book = await Book.findById(bookId);
   return book;
 }
 
-// POST /api/books/:id/citazioni
+
+/**
+ * POST /api/books/:id/citazioni
+ * Endpoint protetto: aggiunge una citazione al libro.
+ * Opzionale: enforcement ownership (solo proprietario può inserire).
+ */
 exports.createBookQuote = async (req, res) => {
   try {
     const bookId = Number(req.params.id);
@@ -128,8 +176,6 @@ exports.createBookQuote = async (req, res) => {
     const book = await ensureBookExists(bookId);
     if (!book) return res.status(404).json({ error: 'Libro non trovato' });
 
-    // (opzionale) enforcement ownership sul libro:
-    // se vuoi che solo il proprietario aggiunga quote al suo libro
     if (book.utente_id !== req.user.id) {
       return res.status(403).json({ error: 'Non autorizzato' });
     }
@@ -142,7 +188,12 @@ exports.createBookQuote = async (req, res) => {
   }
 };
 
-// POST /api/books/:id/recensioni
+
+/**
+ * POST /api/books/:id/recensioni
+ * Endpoint protetto: aggiunge una recensione al libro.
+ * ownership check come sopra.
+ */
 exports.createBookReview = async (req, res) => {
   try {
     const bookId = Number(req.params.id);
@@ -167,7 +218,11 @@ exports.createBookReview = async (req, res) => {
   }
 };
 
-// DELETE /api/books/:id/citazioni/:quoteId
+
+/**
+ * DELETE /api/books/:id/citazioni/:quoteId
+ * Endpoint protetto: elimina una citazione se il libro è dell'utente.
+ */
 exports.deleteBookQuote = async (req, res) => {
   try {
     const bookId = Number(req.params.id);
@@ -194,7 +249,11 @@ exports.deleteBookQuote = async (req, res) => {
   }
 };
 
-// DELETE /api/books/:id/recensioni/:reviewId
+
+/**
+ * DELETE /api/books/:id/recensioni/:reviewId
+ * Endpoint protetto: elimina una recensione se il libro è dell'utente.
+ */
 exports.deleteBookReview = async (req, res) => {
   try {
     const bookId = Number(req.params.id);
@@ -221,6 +280,11 @@ exports.deleteBookReview = async (req, res) => {
   }
 };
 
+
+/**
+ * DELETE /api/books/:id
+ * Endpoint protetto: elimina libro + figli (citazioni/recensioni) in transazione.
+ */
 exports.deleteBook = async (req, res) => {
   try {
     const id = Number(req.params.id);

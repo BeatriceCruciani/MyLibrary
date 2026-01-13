@@ -1,3 +1,6 @@
+/**
+ * index.js - entry point del frontend React.
+ */
 import ReactDOM from "react-dom/client";
 import App from "./App";
 import "./index.css";

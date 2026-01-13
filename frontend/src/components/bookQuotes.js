@@ -1,3 +1,11 @@
+/**
+ * BookQuotes — gestione citazioni associate a un libro.
+ *
+ * Responsabilità:
+ * - caricare citazioni dal backend: GET /api/books/:id/citazioni
+ * - aggiungere citazione: POST /api/books/:id/citazioni
+ * - aggiornare la UI senza ricaricare la pagina
+ */
 import { useEffect, useState } from "react";
 import { apiFetch } from "../api";
 
@@ -23,6 +31,7 @@ export default function BookQuotes({ bookId }) {
     }
   }
 
+  // Carica citazioni quando cambia bookId
   useEffect(() => {
     if (!bookId) return;
     loadQuotes();
@@ -41,6 +50,7 @@ export default function BookQuotes({ bookId }) {
         body: JSON.stringify({ testo: testo.trim() }),
       });
 
+      // aggiorna lista (nuova citazione in cima)
       setQuotes((prev) => [...prev, created]);
       setTesto("");
     } catch (err) {

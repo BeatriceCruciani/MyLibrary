@@ -1,3 +1,11 @@
+/**
+ * BookDetail — visualizza i dettagli del libro selezionato.
+ *
+ * Responsabilità:
+ * - mostrare i dati principali del libro
+ * - fornire azioni "Modifica" e "Elimina" tramite callback del parent
+ * - includere i componenti BookQuotes e BookReviews (feature per libro)
+ */
 import BookQuotes from "./bookQuotes";
 import BookReviews from "./bookReviews";
 
