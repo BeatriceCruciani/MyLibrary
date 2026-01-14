@@ -9,7 +9,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Build frontend
+# Build
 build/
 dist/
 
@@ -28,3 +28,6 @@ Thumbs.db
 
 # Test
 coverage/
+
+# Docker
+*.log
