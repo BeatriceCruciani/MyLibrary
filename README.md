@@ -1,18 +1,18 @@
 # 📚 MyLibrary – Web Application
 
 MyLibrary è un’applicazione web per la gestione di una libreria personale.  
-L’utente può visualizzare libri, aggiungere citazioni e recensioni, e interagire con i dati tramite un’interfaccia web responsive.
+L’utente, dopo autenticazione, può visualizzare e gestire i propri libri, aggiungere recensioni e citazioni, e interagire con i dati tramite un’interfaccia web responsive.
 
-Il progetto è stato realizzato come parte del modulo 1 dell’esame di **Applicazioni Web e Basi di Dati**.
+Il progetto è stato realizzato come parte dell’esame di **Applicazioni Web e Basi di Dati** ed è sviluppato come **Single Page Application (SPA)** con backend e database dedicati.
 
 ---
 
 ## 🚀 Funzionalità principali
 
-- Autenticazione tramite JWT
-- Visualizzazione dei libri associati all’utente loggato
-- Visualizzazione elenco libri
-- Dettaglio di un libro
+- Autenticazione utenti tramite JSON Web Token (JWT)
+- Accesso riservato alla libreria personale
+- Visualizzazione elenco libri dell’utente autenticato
+- Visualizzazione dettaglio di un libro
 - Inserimento e visualizzazione recensioni
 - Inserimento e visualizzazione citazioni
 - Interfaccia responsive, fruibile anche da dispositivi mobile
@@ -21,13 +21,16 @@ Il progetto è stato realizzato come parte del modulo 1 dell’esame di **Applic
 
 ## 🧱 Architettura del progetto
 
-Il progetto segue il paradigma **Single Page Application (SPA)** ed è suddiviso in:
+Il progetto segue il paradigma **Single Page Application (SPA)** ed è strutturato secondo un’architettura a tre livelli:
 
-- Backend: API REST (Node.js / Express)
-- Frontend: applicazione web (React)
-- Database: sistema relazionale per la persistenza dei dati (MySQL)
+- **Frontend**: applicazione web sviluppata con React
+- **Backend**: API REST sviluppate con Node.js ed Express
+- **Database**: DBMS relazionale per la persistenza dei dati
 
-Struttura del progetto:
+La comunicazione tra frontend e backend avviene tramite richieste HTTP in formato JSON.  
+Il database non è accessibile direttamente dal frontend, ma esclusivamente tramite le API del backend.
+
+### Struttura del progetto
 
     MyLibrary/
     ├── backend/
@@ -47,6 +50,7 @@ Struttura del progetto:
     │   │   └── App.jsx
     │   └── package.json
 
+
 ---
 
 ## 🛠 Tecnologie utilizzate
@@ -55,20 +59,24 @@ Struttura del progetto:
 - Node.js
 - Express.js
 - JSON Web Token (JWT)
-- MySQL – gestito tramite MySQL Workbench
+- MySQL
 - Pattern MVC (controllers / models / routes)
 
 ### Frontend
 - React
-- React Router
-- Fetch API / Axios
+- Single Page Application senza routing esterno
+- Fetch API
 - CSS responsive
+
+### DevOps e gestione dell’ambiente
+- Docker
+- Docker Compose
+- Environment Variables per la configurazione
 
 ---
 
 ## 🗄 Database
-
-Il database gestisce le seguenti entità:
+Il database gestisce le seguenti entità principali:
 
 - Utenti
 - Libri
@@ -76,42 +84,42 @@ Il database gestisce le seguenti entità:
 - Citazioni
 
 Ogni recensione e citazione è associata a uno specifico libro tramite relazioni tra le tabelle.  
-L’accesso ad alcune risorse è protetto tramite autenticazione JWT.
+L’accesso alle risorse protette è gestito tramite autenticazione JWT.
+L’inizializzazione del database avviene automaticamente all’avvio dei container Docker tramite script SQL.
 
 ---
 
 ## ⚙️ Installazione e avvio del progetto
 
 ### Requisiti
+- Docker
+- Docker Compose
 - Node.js (>= 18)
 - npm
-- MySQL
-- MySQL Workbench
 
 ---
 
-### 1️⃣ Clonare il repository
+### 1. Avvio del database
 
-    git clone https://github.com/tuo-username/MyLibrary.git
-    cd MyLibrary
+    docker compose up -d
 
 ---
 
-### 2️⃣ Configurare le variabili d’ambiente (Backend)
+### 2️. Configurare le variabili d’ambiente (Backend)
 
 Creare un file `.env` nella cartella `backend/` con i seguenti parametri (esempio):
 
-    PORT=5000
-    JWT_SECRET=your_secret_key
-
-    DB_HOST=localhost
-    DB_USER=your_db_user
-    DB_PASSWORD=your_db_password
-    DB_NAME=your_db_name
+  PORT=5000
+  JWT_SECRET=your_secret_key
+  
+  DB_HOST=db
+  DB_USER=your_db_user
+  DB_PASSWORD=your_db_password
+  DB_NAME=your_db_name
 
 ---
 
-### 3️⃣ Avvio Backend
+### 3️. Avvio Backend
 
     cd backend
     npm install
@@ -123,7 +131,7 @@ Il backend sarà disponibile su:
 
 ---
 
-### 4️⃣ Avvio Frontend
+### 4️. Avvio Frontend
 
 Aprire un nuovo terminale ed eseguire:
 
