@@ -99,9 +99,8 @@ L’inizializzazione del database avviene automaticamente all’avvio dei contai
 
 ---
 
-### 1. Avvio del database
-
-    docker compose up -d
+### 1. Avvio di Docker Compose
+    avviare l'applicazione Docker Desktop e aspettare la comparsa di engine running
 
 ---
 
@@ -119,32 +118,34 @@ Creare un file `.env` nella cartella `backend/` con i seguenti parametri (esempi
 
 ---
 
-### 3️. Avvio Backend
+### 3️. Avvio dell’applicazione
+Dalla root del progetto:
 
-    cd backend
-    npm install
-    npm start
+    docker compose up -d
 
-Il backend sarà disponibile su:
-
-    http://localhost:5000
-
----
-
-### 4️. Avvio Frontend
-
-Aprire un nuovo terminale ed eseguire:
-
-    cd frontend
-    npm install
-    npm start
-
-Il frontend sarà disponibile su:
-
-    http://localhost:3000
+Questo comando:
+    -costruisce le immagini Docker
+    -avvia database, backend e frontend
+    -crea la rete necessaria alla comunicazione tra i servizi
 
 ---
 
+### 4️. Accesso all’applicazione
+
+    Frontend:
+         http://localhost:3000
+
+    Backend (API):
+         http://localhost:5000
+
+---
+
+### 5. Arresto all’applicazione
+
+    docker compose down
+
+
+---
 ## 🔐 Autenticazione
 
 L’applicazione utilizza JSON Web Token (JWT).
@@ -164,6 +165,5 @@ L’interfaccia è progettata per essere utilizzabile sia su desktop che su disp
 
 ## 👤 Autore
 
-- Beatrice Cruciani  
-- Progetto individuale  
+- Beatrice Cruciani    
 - Università degli Studi di Camerino
