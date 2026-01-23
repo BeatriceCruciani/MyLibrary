@@ -3,7 +3,7 @@
 MyLibrary è un’applicazione web per la gestione di una libreria personale.  
 L’utente, dopo autenticazione, può visualizzare e gestire i propri libri, aggiungere recensioni e citazioni, e interagire con i dati tramite un’interfaccia web responsive.
 
-Il progetto è stato realizzato come parte dell’esame di **Applicazioni Web e Basi di Dati** ed è sviluppato come **Single Page Application (SPA)** con backend e database dedicati.
+Il progetto è stato realizzato come parte dell’esame di **Applicazioni Web, Mobile e Cloud** ed è sviluppato come **Single Page Application (SPA)**.
 
 ---
 
@@ -94,9 +94,6 @@ L’inizializzazione del database avviene automaticamente all’avvio dei contai
 ### Requisiti
 - Docker
 - Docker Compose
-- Node.js (>= 18)
-- npm
-
 ---
 
 ## 1. Avvio di Docker
@@ -158,12 +155,6 @@ L’applicazione utilizza JSON Web Token (JWT).
 - Il token viene inviato nelle richieste protette tramite header:
   Authorization: Bearer <token>
 - Le rotte protette consentono l’accesso ai dati dell’utente autenticato
-
----
-
-## 📱 Responsive Design
-
-L’interfaccia è progettata per essere utilizzabile sia su desktop che su dispositivi mobili.
 
 ---
 
