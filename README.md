@@ -122,7 +122,7 @@ JWT_SECRET=stringa_lunga_random
 ### 3️. Avvio dell’applicazione
 Dalla root del progetto:
 
-    docker compose up -d
+    docker compose up -d --build
 
 Questo comando:
     -costruisce le immagini Docker
