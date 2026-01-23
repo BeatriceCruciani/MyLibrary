@@ -205,6 +205,10 @@ function App() {
       <div className="layout">
         <aside className="sidebar">
           <h2>I miei libri</h2>
+
+          {/* ✅ Statistiche sempre visibili (anche quando apri un libro) */}
+          <StatsPanel refreshKey={statsKey} />
+
           <ul className="book-list">
             {books.map((book) => (
               <li key={book.id}>
@@ -226,12 +230,9 @@ function App() {
 
         <main className="content">
           {!selectedBook && (
-            <>
-              <StatsPanel refreshKey={statsKey} />
-              <div className="empty-state">
-                <p>Seleziona un libro dalla lista oppure creane uno nuovo.</p>
-              </div>
-            </>
+            <div className="empty-state">
+              <p>Seleziona un libro dalla lista oppure creane uno nuovo.</p>
+            </div>
           )}
 
           {selectedBook && !isEditing && (

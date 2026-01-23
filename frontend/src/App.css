@@ -22,8 +22,13 @@
 
   --shadow: 0 10px 28px rgba(17, 24, 39, 0.07);
   --radius: 16px;
-}
 
+  /* Nuove variabili “safe” per StatsPanel (così non hai colori hardcoded) */
+  --stats-card: #f7f1e3;
+  --stats-border: #e6dcc8;
+  --stats-inner-border: #efe5d6;
+  --stats-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+}
 
 html,
 body {
@@ -64,12 +69,14 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: 0; /* evita overflow su mobile */
 }
 
 .brand h1 {
   margin: 0;
   font-size: 20px;
   letter-spacing: 0.2px;
+  white-space: nowrap;
 }
 
 .user-badge {
@@ -83,6 +90,11 @@ body {
   border: 1px solid var(--border);
   padding: 6px 10px;
   border-radius: 999px;
+
+  max-width: 42vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* ===== Layout ===== */
@@ -117,8 +129,16 @@ body {
   padding: 14px;
 }
 
+/* Sidebar “dashboard”: mantiene stats + lista + form ordinati e gestisce liste lunghe */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0; /* abilita scroll interno su figli */
+}
+
 .sidebar h2 {
-  margin: 0 0 10px 0;
+  margin: 0;
   font-size: 18px;
 }
 
@@ -130,10 +150,14 @@ body {
 .book-list {
   list-style: none;
   padding: 0;
-  margin: 10px 0 14px 0;
-
+  margin: 0; /* prima era 10px 0 14px 0: ora lo gestiamo col gap della sidebar */
   display: grid;
   gap: 8px;
+
+  /* ✅ Miglioria: se hai tanti libri, la lista scrolla senza spingere fuori tutto */
+  overflow: auto;
+  max-height: 46vh; /* safe: su desktop non diventa infinita */
+  padding-right: 4px; /* spazio per scrollbar */
 }
 
 .book-list li button {
@@ -206,6 +230,17 @@ button:active {
 button:disabled {
   opacity: 0.55;
   cursor: not-allowed;
+}
+
+/* ✅ Accessibilità: focus visibile solo da tastiera */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(139, 94, 52, 0.12);
+  border-color: #d7c3a3;
 }
 
 /* Primary + logout */
@@ -359,6 +394,10 @@ li {
   textarea {
     border-radius: 12px;
   }
+
+  .user-badge {
+    max-width: 56vw;
+  }
 }
 
 .content h2 {
@@ -377,15 +416,16 @@ li {
 /* --- StatsPanel --- */
 .statsWrap {
   width: 100%;
-  margin: 0 0 16px 0;
+  margin: 0;
 }
 
+/* Integrato con le variabili */
 .statsCard {
-  background: #f7f1e3;
-  border: 1px solid #e6dcc8;
-  border-radius: 16px;
-  padding: 14px;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+  background: var(--stats-card);
+  border: 1px solid var(--stats-border);
+  border-radius: var(--radius);
+  padding: 12px;
+  box-shadow: var(--stats-shadow);
 }
 
 .statsHeader {
@@ -393,11 +433,11 @@ li {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .statsTitle {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 800;
   margin-bottom: 2px;
 }
@@ -414,15 +454,15 @@ li {
 }
 
 .statBox {
-  background: #ffffff;
-  border: 1px solid #efe5d6;
+  background: var(--inner);
+  border: 1px solid var(--stats-inner-border);
   border-radius: 14px;
-  padding: 12px;
+  padding: 10px;
   text-align: center;
 }
 
 .statValue {
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 900;
   line-height: 1.1;
 }
@@ -435,7 +475,7 @@ li {
 
 .statsBtn {
   border: 1px solid #d8cbb5;
-  background: #ffffff;
+  background: var(--inner);
   border-radius: 12px;
   padding: 8px 10px;
   cursor: pointer;
@@ -443,13 +483,13 @@ li {
 }
 
 .statsBtn:hover {
-  filter: brightness(0.98);
+  background: var(--soft);
 }
 
 .statsError {
   margin-top: 8px;
   margin-bottom: 10px;
-  background: #fff;
+  background: var(--inner);
   border: 1px solid #f0d2d2;
   border-radius: 12px;
   padding: 10px;
@@ -463,8 +503,8 @@ li {
 
 .statsDetails {
   margin-top: 10px;
-  background: #fff;
-  border: 1px solid #efe5d6;
+  background: var(--inner);
+  border: 1px solid var(--stats-inner-border);
   border-radius: 12px;
   padding: 10px;
 }
@@ -484,7 +524,7 @@ li {
   display: flex;
   justify-content: space-between;
   padding: 8px 0;
-  border-top: 1px dashed #efe5d6;
+  border-top: 1px dashed var(--stats-inner-border);
 }
 
 .statsKey {
@@ -495,8 +535,21 @@ li {
   font-weight: 900;
 }
 
+/* Responsive */
 @media (max-width: 700px) {
   .statsGrid {
     grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ✅ Sidebar: stats più compatte sempre */
+.sidebar .statsGrid {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+/* Mobile: lista libri più gestibile */
+@media (max-width: 900px) {
+  .book-list {
+    max-height: 38vh;
   }
 }
