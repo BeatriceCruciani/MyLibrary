@@ -300,3 +300,43 @@ exports.deleteBook = async (req, res) => {
     res.status(500).json({ error: 'Errore database' });
   }
 };
+
+/**
+ * GET /api/books/me/stats
+ * Endpoint protetto: statistiche dei libri dell'utente autenticato.
+ */
+exports.getMyStats = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const stats = await Book.getStatsByUser(userId);
+
+    // opzionale: macro contatori standard (comodi lato frontend)
+    const normalized = (s) => String(s || '').toLowerCase().trim();
+
+    let toRead = 0;
+    let reading = 0;
+    let read = 0;
+    let other = 0;
+
+    for (const [state, count] of Object.entries(stats.byState)) {
+      const st = normalized(state);
+
+      if (['da_leggere', 'da leggere', 'to_read', 'da-leggere'].includes(st)) toRead += count;
+      else if (['in_lettura', 'in lettura', 'reading', 'in-lettura'].includes(st)) reading += count;
+      else if (['letto', 'letti', 'read'].includes(st)) read += count;
+      else other += count;
+    }
+
+    res.json({
+      total: stats.total,
+      toRead,
+      reading,
+      read,
+      other,
+      byState: stats.byState
+    });
+  } catch (err) {
+    console.error('getMyStats error:', err);
+    res.status(500).json({ error: 'Errore database' });
+  }
+};

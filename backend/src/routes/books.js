@@ -11,6 +11,8 @@ const auth = require('../middleware/auth.middleware');
 // Libri dell'utente loggato (protetta)
 router.get('/me/mine', auth, bookController.getMyBooks);
 
+// Statistiche libri dell'utente loggato (protetta)
+router.get('/me/stats', auth, bookController.getMyStats);
 
 // ROTTE PUBBLICHE (lettura)
 router.get('/', bookController.getAllBooks);

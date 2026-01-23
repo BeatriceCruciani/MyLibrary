@@ -37,6 +37,42 @@ const Book = {
     return rows;
   },
 
+    /**
+   * Statistiche dei libri per uno specifico utente.
+   * Ritorna:
+   * - total: totale libri
+   * - byState: mappa stato -> count
+   */
+  async getStatsByUser(userId) {
+    // Totale
+    const [[totalRow]] = await db.query(
+      'SELECT COUNT(*) AS total FROM libri WHERE utente_id = ?',
+      [userId]
+    );
+
+    // Raggruppate per stato
+    const [rows] = await db.query(
+      `SELECT stato, COUNT(*) AS count
+       FROM libri
+       WHERE utente_id = ?
+       GROUP BY stato`,
+      [userId]
+    );
+
+    const byState = {};
+    for (const r of rows) {
+      // r.stato può essere NULL/'' se nel DB ci sono record vecchi
+      const key = r.stato && String(r.stato).trim() ? String(r.stato).trim() : 'non_impostato';
+      byState[key] = Number(r.count);
+    }
+
+    return {
+      total: Number(totalRow?.total || 0),
+      byState
+    };
+  },
+
+
   /**
    * Crea un libro e restituisce l'oggetto creato.
    */

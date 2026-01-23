@@ -374,3 +374,129 @@ li {
   margin-bottom: 8px;
 }
 
+/* --- StatsPanel --- */
+.statsWrap {
+  width: 100%;
+  margin: 0 0 16px 0;
+}
+
+.statsCard {
+  background: #f7f1e3;
+  border: 1px solid #e6dcc8;
+  border-radius: 16px;
+  padding: 14px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+}
+
+.statsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.statsTitle {
+  font-size: 18px;
+  font-weight: 800;
+  margin-bottom: 2px;
+}
+
+.statsHint {
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.statBox {
+  background: #ffffff;
+  border: 1px solid #efe5d6;
+  border-radius: 14px;
+  padding: 12px;
+  text-align: center;
+}
+
+.statValue {
+  font-size: 24px;
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+.statLabel {
+  font-size: 12px;
+  opacity: 0.85;
+  margin-top: 6px;
+}
+
+.statsBtn {
+  border: 1px solid #d8cbb5;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 8px 10px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.statsBtn:hover {
+  filter: brightness(0.98);
+}
+
+.statsError {
+  margin-top: 8px;
+  margin-bottom: 10px;
+  background: #fff;
+  border: 1px solid #f0d2d2;
+  border-radius: 12px;
+  padding: 10px;
+}
+
+.statsOther {
+  margin-top: 10px;
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+.statsDetails {
+  margin-top: 10px;
+  background: #fff;
+  border: 1px solid #efe5d6;
+  border-radius: 12px;
+  padding: 10px;
+}
+
+.statsDetails summary {
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.statsList {
+  list-style: none;
+  padding: 10px 0 0 0;
+  margin: 0;
+}
+
+.statsList li {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-top: 1px dashed #efe5d6;
+}
+
+.statsKey {
+  opacity: 0.9;
+}
+
+.statsVal {
+  font-weight: 900;
+}
+
+@media (max-width: 700px) {
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

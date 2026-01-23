@@ -13,6 +13,7 @@ import BookCreate from "./components/BookCreate";
 import BookEdit from "./components/BookEdit";
 import BookDetail from "./components/BookDetail";
 import AuthPage from "./components/AuthPage";
+import StatsPanel from "./components/StatsPanel";
 
 import { apiFetch } from "./api";
 import { clearToken, getToken } from "./auth";
@@ -32,6 +33,8 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // Forza refresh del pannello statistiche dopo CRUD
+  const [statsKey, setStatsKey] = useState(0);
 
   /**
    * Carica i dati del profilo dell'utente autenticato.
@@ -63,6 +66,7 @@ function App() {
     try {
       await loadMe();
       await loadBooks();
+      setStatsKey((k) => k + 1);
     } catch (err) {
       // In caso di token scaduto/non valido, apiFetch può già pulire il token.
       setError(err.message || "Errore caricamento dati");
@@ -79,7 +83,6 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-
   /**
    * Logout:
    * - rimuove token
@@ -91,6 +94,7 @@ function App() {
     setBooks([]);
     setSelectedBook(null);
     setIsEditing(false);
+    setStatsKey(0);
   }
 
   /**
@@ -100,6 +104,7 @@ function App() {
   async function handleAuthSuccess(user) {
     setMe(user);
     await loadBooks();
+    setStatsKey((k) => k + 1);
   }
 
   /**
@@ -121,6 +126,7 @@ function App() {
       });
 
       setBooks((prev) => [...prev, created]);
+      setStatsKey((k) => k + 1);
     } catch (err) {
       setError(err.message || "Errore creazione libro");
     }
@@ -148,6 +154,7 @@ function App() {
       setBooks((prev) => prev.map((b) => (b.id === saved.id ? saved : b)));
       setSelectedBook(saved);
       setIsEditing(false);
+      setStatsKey((k) => k + 1);
     } catch (err) {
       setError(err.message || "Errore modifica libro");
     }
@@ -163,10 +170,12 @@ function App() {
       await apiFetch(`/api/books/${bookId}`, { method: "DELETE" });
       setBooks((prev) => prev.filter((b) => b.id !== bookId));
       if (selectedBook?.id === bookId) setSelectedBook(null);
+      setStatsKey((k) => k + 1);
     } catch (err) {
       setError(err.message || "Errore eliminazione libro");
     }
   }
+
   /**
    * Se non esiste un token, mostriamo la pagina di autenticazione.
    * AuthPage si occupa di login/register e, al successo, richiama onAuthSuccess.
@@ -217,9 +226,12 @@ function App() {
 
         <main className="content">
           {!selectedBook && (
-            <div className="empty-state">
-              <p>Seleziona un libro dalla lista oppure creane uno nuovo.</p>
-            </div>
+            <>
+              <StatsPanel refreshKey={statsKey} />
+              <div className="empty-state">
+                <p>Seleziona un libro dalla lista oppure creane uno nuovo.</p>
+              </div>
+            </>
           )}
 
           {selectedBook && !isEditing && (
