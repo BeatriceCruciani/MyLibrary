@@ -99,23 +99,27 @@ L’inizializzazione del database avviene automaticamente all’avvio dei contai
 
 ---
 
-### 1. Avvio di Docker Compose
-    avviare l'applicazione Docker Desktop e aspettare la comparsa di engine running
+## 1. Avvio di Docker
+
+Avviare Docker Desktop e attendere che lo stato diventi **Engine running**.
 
 ---
 
-### 2️. Configurare le variabili d’ambiente (Backend)
+## 2. Configurazione delle variabili d’ambiente
 
-Creare un file `.env` nella cartella `backend/` con i seguenti parametri (esempio):
+Creare un file `.env` nella root del progetto con il seguente contenuto:
 
-  PORT=5000
-  JWT_SECRET=your_secret_key
-  
-  DB_HOST=db
-  DB_USER=your_db_user
-  DB_PASSWORD=your_db_password
-  DB_NAME=your_db_name
+```env
+DB_NAME=mylibrary
+DB_USER=mylibrary_user
+DB_PASSWORD=mylibrary_pass
+DB_ROOT_PASSWORD=rootpass
 
+BACKEND_PORT=5000
+FRONTEND_PORT=3000
+
+JWT_SECRET=stringa_lunga_random
+```
 ---
 
 ### 3️. Avvio dell’applicazione
