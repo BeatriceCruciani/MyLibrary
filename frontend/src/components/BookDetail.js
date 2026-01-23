@@ -6,8 +6,8 @@
  * - fornire azioni "Modifica" e "Elimina" tramite callback del parent
  * - includere i componenti BookQuotes e BookReviews (feature per libro)
  */
-import BookQuotes from "./bookQuotes";
-import BookReviews from "./bookReviews";
+import BookQuotes from "./BookQuotes";
+import BookReviews from "./BookReviews";
 
 export default function BookDetail({ book, onEdit, onDelete }) {
   if (!book) return null;

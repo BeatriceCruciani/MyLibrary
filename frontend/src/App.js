@@ -9,10 +9,10 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 
-import BookCreate from "./components/bookCreate";
-import BookEdit from "./components/bookEdit";
-import BookDetail from "./components/bookDetail";
-import AuthPage from "./components/authPage"; // <-- coerente col tuo nome file
+import BookCreate from "./components/BookCreate";
+import BookEdit from "./components/BookEdit";
+import BookDetail from "./components/BookDetail";
+import AuthPage from "./components/AuthPage";
 
 import { apiFetch } from "./api";
 import { clearToken, getToken } from "./auth";
