@@ -542,7 +542,7 @@ li {
   }
 }
 
-/* ✅ Sidebar: stats più compatte sempre */
+/* Sidebar: stats più compatte sempre */
 .sidebar .statsGrid {
   grid-template-columns: repeat(2, 1fr);
 }

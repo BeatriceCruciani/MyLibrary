@@ -206,7 +206,7 @@ function App() {
         <aside className="sidebar">
           <h2>I miei libri</h2>
 
-          {/* ✅ Statistiche sempre visibili (anche quando apri un libro) */}
+          {/* Statistiche sempre visibili (anche quando apri un libro) */}
           <StatsPanel refreshKey={statsKey} />
 
           <ul className="book-list">
