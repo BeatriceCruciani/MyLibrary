@@ -1,0 +1,91 @@
+name: MyLibrary CI
+
+# La pipeline si attiva ad ogni push e pull request sul branch main
+"on":
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+
+  # ─────────────────────────────────────────────
+  # JOB 1: Test backend (Jest + Supertest)
+  # Gira senza database: il DB è mockato nei test
+  # ─────────────────────────────────────────────
+  backend-tests:
+    name: Backend – Unit Tests
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout codice
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Installa dipendenze
+        run: npm ci
+
+      - name: Esegui test
+        run: npm test
+        env:
+          JWT_SECRET: test_secret_ci_pipeline
+
+  # ─────────────────────────────────────────────
+  # JOB 2: Test frontend (React Testing Library)
+  # ─────────────────────────────────────────────
+  frontend-tests:
+    name: Frontend – Unit Tests
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout codice
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Installa dipendenze
+        run: npm ci
+
+      - name: Esegui test
+        run: npm test -- --watchAll=false --passWithNoTests
+        env:
+          CI: true
+
+  # ─────────────────────────────────────────────
+  # JOB 3: Docker build
+  # Verifica che entrambe le immagini si costruiscano
+  # correttamente (non fa push su registry)
+  # ─────────────────────────────────────────────
+  docker-build:
+    name: Docker – Build Check
+    runs-on: ubuntu-latest
+    needs: [backend-tests, frontend-tests]
+
+    steps:
+      - name: Checkout codice
+        uses: actions/checkout@v4
+
+      - name: Build immagine backend
+        run: docker build -t mylibrary-backend ./backend
+
+      - name: Build immagine frontend
+        run: docker build -t mylibrary-frontend ./frontend
