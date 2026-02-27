@@ -1,20 +1,10 @@
-/**
- * App.test.js — test del componente AuthPage
- *
- * Verifica il rendering e il comportamento base della pagina di autenticazione.
- * Le chiamate API vengono intercettate con jest.mock per evitare
- * dipendenze dal backend durante i test.
- */
-
 import { render, screen, fireEvent } from "@testing-library/react";
 import AuthPage from "./components/AuthPage";
 
-// Mock del modulo api per non fare chiamate HTTP reali
 jest.mock("./api", () => ({
   apiFetch: jest.fn(),
 }));
 
-// Mock di auth.js per evitare accessi a localStorage
 jest.mock("./auth", () => ({
   setToken: jest.fn(),
   getToken: jest.fn(() => null),
@@ -29,9 +19,12 @@ describe("AuthPage", () => {
     jest.clearAllMocks();
   });
 
-  test("mostra i bottoni Login e Register", () => {
+  test("mostra i bottoni Login e Register nello switch", () => {
     render(<AuthPage onAuthSuccess={mockOnAuthSuccess} />);
-    expect(screen.getByRole("button", { name: "Login" })).toBeInTheDocument();
+    // Ci sono due bottoni "Login": quello dello switch e quello del form
+    // Verifica esistenza usando getAllByRole
+    const loginButtons = screen.getAllByRole("button", { name: "Login" });
+    expect(loginButtons.length).toBeGreaterThanOrEqual(1);
     expect(screen.getByRole("button", { name: "Register" })).toBeInTheDocument();
   });
 
